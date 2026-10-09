@@ -1,0 +1,1123 @@
+{
+  "name": "04 Timeline Doc Generation",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "eCtz5c5SvgwxlFBC",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/eCtz5c5SvgwxlFBC",
+          "cachedResultName": "05 Pre Approval Tasks"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        320,
+        2160
+      ],
+      "id": "1ed98a44-e9c2-40bd-a0b5-b37ff821fcf8",
+      "name": "Call 'Pre Approval Tasks'"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "sheet_data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        1952
+      ],
+      "id": "e64c4df4-1a09-466a-9784-e8e086a4dbaf",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c941f857-df6b-4ebd-9105-0a029387fef4",
+              "name": "sheet_data",
+              "value": "={{ $json.output[0].content[0].text.data[0].sheet_data }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        1952
+      ],
+      "id": "36b696ce-a2cf-45b1-be65-1d0cabc21e67",
+      "name": "updated sheet data"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "GPT-5"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are an expert spreadsheet timeline automation assistant.\n\nYour task is to intelligently update specific cells inside a project timeline spreadsheet while preserving the existing sheet structure exactly.\n\nYou will receive:\n\n1. Project details\n2. Client code\n3. Full sheet row data\n4. Google Sheet Tool Integrated \"GET PUBLIC HOLIDAYS\"\n\nYou must fully understand the sheet structure before making updates.\n\n════════════════════════════════════════════\nPRIMARY OBJECTIVE\n════════════════════════════════════════════\n\nYour job is to:\n\n1. Update the project name\n2. Populate PROJECT TIMELINE ownership values\n3. Calculate sequential working-day timelines\n4. Preserve ALL spreadsheet integrity\n\nYou are NOT allowed to:\n\n* reorder rows\n* remove rows\n* change durations\n* alter unrelated values\n* invent missing data\n\nYou must behave like a real production operations scheduler.\n\n════════════════════════════════════════════\nTASK 1 — UPDATE PROJECT NAME\n════════════════════════════════════════════\n\nFind:\n\n* Row Number = 2\n* Column = col_1\n\nCurrent Example:\nPROJECT: <Project Name Here>\n\nReplace ONLY the value inside col_1 with:\n\nPROJECT: {{ $('When Executed by Another Workflow').item.json.brief_data[0].client_name }}\n\nDo NOT modify:\n\n* any other column\n* any other row\n* formatting structure\n\n════════════════════════════════════════════\nTASK 2 — UPDATE PROJECT TIMELINE VALUES\n════════════════════════════════════════════\n\nProcess rows:\n\n* starting from row number 4\n* until the final row\n\n════════════════════════════════════════════\nROW SKIP RULE (CRITICAL)\n════════════════════════════════════════════\n\nCompletely SKIP rows where:\n\n* col_3 is empty\n* col_3 is null\n\nSkipped rows:\n\n* MUST remain unchanged\n* MUST NOT receive dates\n* MUST NOT receive PROJECT TIMELINE updates\n\n════════════════════════════════════════════\nPROJECT TIMELINE ASSIGNMENT LOGIC(MUST)\n════════════════════════════════════════════\n\nFor each valid row:\n\nSTEP 1:\nConvert col_1 to lowercase.\n\nSTEP 2:\nCheck whether col_1 contains ANY of these keywords:\n\n* feedback\n* approval\n\nIf TRUE:\n\nPROJECT TIMELINE =\nFirst 3 characters of client code\n\nExample:\nClient code = JBCP\nResult = JBC\n\nIf FALSE:\n\nPROJECT TIMELINE = TCA\n\n════════════════════════════════════════════\nCLIENT INPUT DETAILS\n════════════════════════════════════════════\n\nProject Name:\n{{ $('When Executed by Another Workflow').item.json.brief_data[0].client_name }}\n\nClient Code:\n{{ $('When Executed by Another Workflow').item.json.brief_data[0].client_code }}\n\n════════════════════════════════════════════\nTASK 3 — CALCULATE START & END DATES\n════════════════════════════════════════════\n\nYou must calculate:\n\n* col_4 = START DATE\n* col_5 = END DATE\n\nOnly process VALID rows.\n\nValid rows are only rows where:\n\n* col_3 contains a duration value\n\n════════════════════════════════════════════\nTIMELINE START DATE\n════════════════════════════════════════════\n\nCurrent System Date:\n{{ $now.format('yyyy-MM-dd') }}\n\nThe project timeline MUST ALWAYS be built FORWARD from the Current System Date.\n\nThe first valid schedulable task (Row 4 - Client Briefing) MUST start on the Current System Date.\n\nIf the Current System Date falls on:\n\n• Saturday\n• Sunday\n• Australian Public Holiday\n• Agency Shutdown Day\n• Substitute Holiday\n• Any NON-WORKING DAY returned from GET PUBLIC HOLIDAYS\n\nthen move the START DATE to the next valid working day.\n\n════════════════════════════════════════════\nTIMELINE CALCULATION\n════════════════════════════════════════════\n\nFor the first valid row (Row 4):\n\n• col_4 MUST equal the Current System Date.\n• col_5 MUST be calculated using only the duration in col_3.\n\nFor every subsequent valid row:\n\n• START DATE = Next valid working day after the previous task END DATE\n• END DATE = START DATE + duration from col_3\n\nOnly VALID WORKING DAYS count towards the duration.\n\nDo NOT:\n\n• modify durations\n• compress schedules\n• overlap tasks\n• leave timeline gaps\n• schedule work on weekends\n• schedule work on public holidays\n• schedule work during shutdown periods\n\nThe timeline must always remain fully sequential from the first task until the last task.\n\n════════════════════════════════════════════\nCRITICAL DURATION RULE\n════════════════════════════════════════════\n\ncol_3 ALWAYS represents:\nWORKING DAYS\n\nYou MUST use col_3 exactly as provided.\n\nDO NOT:\n\n* modify durations\n* estimate durations\n* invent durations\n* round durations\n\nExamples:\n\n* 1 = 1 working day\n* 5 = 5 working days\n* 20 = 20 working days\n\n════════════════════════════════════════════\nWORKING DAY RULES\n════════════════════════════════════════════\n\nONLY:\n\n* Monday\n* Tuesday\n* Wednesday\n* Thursday\n* Friday\n\nare valid working days.\n\nNEVER allow:\n\n* Saturday\n* Sunday\n\nin:\n\n* col_4\n* col_5\n\n════════════════════════════════════════════\nPUBLIC HOLIDAY & NON-WORKING DAY SYSTEM\n════════════════════════════════════════════\n\nIMPORTANT:\nYou have access to a Google Sheet tool:\n\nGET PUBLIC HOLIDAYS\n\nYou MUST call this tool BEFORE performing ANY timeline calculations.\n\nThe sheet contains:\n\n* Australian public holidays\n* Agency shutdown dates\n* Substitute holidays\n* Company-wide non-working days\n\nThe tool output includes rows like:\n\nYear | Public Holidays | Description\n\nExamples:\n\n* Fri, 25 December → Christmas Day\n* Mon, 28 December → Boxing Day Substitute\n* Wed, 27 December → Core Agency Shutdown Period\n\n#HOLIDAY TOOL RESPONSE FORMAT EXAMPLE\n\nThe GET PUBLIC HOLIDAYS1 tool returns rows like:\n\n[\n{\n\"Year\": 2026,\n\"Public Holidays\": \"Fri, 25 December\",\n\"Description\": \"Christmas Day\"\n},\n{\n\"Year\": \"\",\n\"Public Holidays\": \"Mon, 28 December\",\n\"Description\": \"Boxing Day Substitute\"\n},\n{\n\"Year\": \"\",\n\"Public Holidays\": \"Tue, 29 December\",\n\"Description\": \"Core Agency Shutdown Period\"\n}\n]\n\nIMPORTANT:\n\n* Blank Year values inherit the most recent previous year\n* ALL returned dates are NON-WORKING DAYS\n* Shutdown periods behave exactly like public holidays\n* NEVER schedule work on these dates\n\n════════════════════════════════════════════\nMANDATORY TOOL USAGE RULE\n════════════════════════════════════════════\n\nBEFORE calculating ANY:\n\n* start date\n* end date\n* next working day\n* previous working day\n* task duration progression\n\nYou MUST:\n\n1. Call GET PUBLIC HOLIDAYS\n2. Load ALL holiday rows relevant to the scheduling year(s)\n3. Build an internal NON-WORKING DAY calendar\n\n════════════════════════════════════════════\nHOLIDAY CALENDAR CONFIRMATION STEP\n════════════════════════════════════════════\n\nAfter calling GET PUBLIC HOLIDAYS and BEFORE any date calculation:\n\nYou MUST explicitly list every non-working date identified.\n\nFormat internally as:\n\nNON_WORKING_DAYS = [\n  \"YYYY-MM-DD\",  // Description\n  \"YYYY-MM-DD\",  // Description\n]\n\nOnly after this list is built may you proceed to date calculations.\n\nIf this step is skipped → abort and restart from tool call.\n\n════════════════════════════════════════════\nNON-WORKING DAYS DEFINITION\n════════════════════════════════════════════\n\nA NON-WORKING DAY is ANY date that is:\n\n1. Saturday\n2. Sunday\n3. Australian Public Holiday\n4. Substitute Holiday\n5. Core Agency Shutdown Day\n6. Any date returned from GET PUBLIC HOLIDAYS\n\nALL returned holiday dates MUST be treated EXACTLY like weekends.\n\nNO work may occur on those dates.\n\n════════════════════════════════════════════\nCRITICAL DATE VALIDATION RULE\n════════════════════════════════════════════\n\nEVERY calculated date MUST be validated.\n\nBefore assigning ANY:\n\n* col_4\n* col_5\n* task start\n* task end\n\nYou MUST check:\n\nIS THIS DATE:\n\n* Saturday?\n* Sunday?\n* Public holiday?\n* Shutdown day?\n* Substitute holiday?\n\nIF YES:\n→ move to nearest valid working day.\n\n════════════════════════════════════════════\nSEQUENTIAL TASK RULES\n════════════════════════════════════════════\n\nTasks MUST remain fully sequential even after holiday adjustments.\n\nThis means:\n\n* No overlapping tasks\n* No skipped durations\n* No compressed schedules\n* Duration count must ONLY count VALID WORKING DAYS\n\n════════════════════════════════════════════\nWORKING DAY COUNT RULE\n════════════════════════════════════════════\n\nIMPORTANT:\n\nTask durations represent:\nVALID BUSINESS WORKING DAYS ONLY.\n\nDO NOT count:\n\n* weekends\n* public holidays\n* shutdown days\n* substitute holidays\n\nExample:\n\nDuration = 5 days\n\nIf timeline contains:\n\n* Saturday\n* Sunday\n* Australia Day holiday\n\nThose dates MUST NOT count toward the 5 days.\n\n════════════════════════════════════════════\nYEAR RESOLUTION RULE\n════════════════════════════════════════════\n\nWhen calling GET PUBLIC HOLIDAYS:\n\nLoad all holiday dates required for every year covered by the generated timeline.\n\nExamples:\n\nIf project spans:\n\n* Dec 2026 → Jan 2027\n\nTHEN:\nfetch:\n\n* 2026 holidays\n* 2027 holidays\n\n════════════════════════════════════════════\nSHUTDOWN PERIOD RULE\n════════════════════════════════════════════\n\n\"Core Agency Shutdown Period\" entries are FULL non-working days.\n\nTreat them exactly the same as public holidays.\n\nNO work may occur during shutdown dates.\n\n════════════════════════════════════════════\nSTRICT CALENDAR ENFORCEMENT\n════════════════════════════════════════════\n\nA valid working day MUST satisfy ALL conditions:\n\n✓ Monday-Friday\n✓ NOT public holiday\n✓ NOT substitute holiday\n✓ NOT shutdown period\n✓ NOT agency closure date\n\nOnly then may work be scheduled.\n\n════════════════════════════════════════════\nFINAL VALIDATION RULE\n════════════════════════════════════════════\n\nBefore returning final JSON:\n\nYou MUST validate that:\n\n* no task date falls on holiday\n* no task date falls on shutdown day\n* no task date falls on weekend\n* all durations count only working days\n* sequential flow remains intact\n* all dates are business-calendar safe\n\n════════════════════════════════════════════\nWORKING DAY CALCULATION EXAMPLE\n════════════════════════════════════════════\n\nStart = Thursday\nDuration = 3\n\nResult:\nEnd = Monday\n\nBecause:\n\n* Saturday skipped\n* Sunday skipped\n\n════════════════════════════════════════════\nDATE FORMAT RULE\n════════════════════════════════════════════\n\nALL output dates MUST use EXACT format:\n\nTue, 03 November\n\nExamples:\n\n* Mon, 12 January\n* Fri, 28 March\n\n════════════════════════════════════════════\nSTRICT PRESERVATION RULES\n════════════════════════════════════════════\n\nYou MUST preserve:\n\n* all rows\n* all columns\n* all existing values (col_3 MUST BE NOT MODIFIED)\n* original row ordering\n* original JSON structure\n\nONLY allowed modifications:\n\n1. row 2 → col_1\n2. PROJECT TIMELINE\n3. col_4\n4. col_5\n\nALL OTHER VALUES MUST REMAIN IDENTICAL.\n\n════════════════════════════════════════════\nOUTPUT RULES\n════════════════════════════════════════════\n\nReturn:\nVALID RAW JSON ONLY\n\nDO NOT:\n\n* use markdown\n* add explanations\n* add comments\n* add analysis\n* add extra text\n\n════════════════════════════════════════════\nFINAL OUTPUT FORMAT\n════════════════════════════════════════════\n\n{\n\"sheet_data\": [...]\n}\n\n════════════════════════════════════════════\nINPUT DATA\n════════════════════════════════════════════\n\nsheet data:\n{{ JSON.stringify($json.sheet_data) }}\n\n════════════════════════════════════════════\nFAILSAFE ERROR HANDLING\n════════════════════════════════════════════\n\nIf ANY critical scheduling dependency fails:\n\nExamples:\n\n* holiday tool unavailable\n* malformed dates\n* invalid sheet rows\n* corrupted durations\n* missing required columns\n* impossible scheduling flow\n* invalid timeline calculations\n\nTHEN:\n\n1. preserve original sheet structure\n2. preserve all rows\n3. preserve all unrelated values\n4. do NOT hallucinate fixes\n5. do NOT invent dates\n6. do NOT fabricate schedules\n7. leave unresolved rows unchanged\n8. return safest possible valid JSON\n\nUnder failure conditions:\n\n* prioritize spreadsheet integrity\n* prioritize valid JSON\n* prioritize non-destructive behavior\n\nNEVER generate fake timeline data.\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_schema",
+              "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"data\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"sheet_data\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"row_number\": {\n                  \"type\": \"number\"\n                },\n                \"col_1\": {\n                  \"type\": \"string\"\n                },\n                \"PROJECT TIMELINE\": {\n                  \"type\": \"string\"\n                },\n                \"col_3\": {\n                  \"type\": \"number\"\n                },\n                \"col_4\": {\n                  \"type\": \"string\"\n                },\n                \"col_5\": {\n                  \"type\": \"string\"\n                }\n              },\n              \"required\": [\n                \"row_number\",\n                \"col_1\",\n                \"PROJECT TIMELINE\",\n                \"col_3\",\n                \"col_4\",\n                \"col_5\"\n              ],\n              \"additionalProperties\": false\n            }\n          }\n        },\n        \"required\": [\n          \"sheet_data\"\n        ],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": [\n    \"data\"\n  ],\n  \"additionalProperties\": false\n}",
+              "strict": true
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        -304,
+        1840
+      ],
+      "id": "1afffbeb-cbe5-472b-8d71-dd71a65fb0a9",
+      "name": "generate timeline",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "v1DQHKLXrdQIocpO",
+          "name": "OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "06667c86-5ad8-4551-a70c-1525eca04797",
+              "name": "job_type",
+              "value": "={{ $json.job_type }}",
+              "type": "string"
+            },
+            {
+              "id": "e501d103-958c-4ab0-abd1-8f9fb80e14da",
+              "name": "production_folder",
+              "value": "={{ $json.production_folder_ID }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1264,
+        1952
+      ],
+      "id": "77416648-2ab1-4e67-b86b-3ff6f9bfa4fb",
+      "name": "job type for template"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{ $('CREATE TIMELINE SHEET FROM TEMPLATE').item.json.name }}",
+        "limit": 1,
+        "filter": {
+          "whatToSearch": "files"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1504,
+        2160
+      ],
+      "id": "3bbdb81c-9c3c-4685-9f60-c1fb7c421abb",
+      "name": "Search spreadsheet & get ID",
+      "retryOnFail": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        2160
+      ],
+      "id": "7477f910-0f91-4452-b5c7-6a7fc218a14f",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// PROJECT NAME + TIMELINE\n// MULTIPLE ITEMS\n// ============================================\n\nconst sheetData =\n$('updated sheet data')\n.first()\n.json\n.sheet_data;\n\nconst rawSheetName =\n$('job type for template')\n.first()\n.json\n.job_type;\n\nconst SHEET_NAME =\n\"'\" + String(rawSheetName).trim() + \"'\";\n\nconst skipRows = {\n  3: true\n};\n\nconst items = [];\n\n// ============================================\n// ROW 2 -> PROJECT NAME\n// ============================================\n\nconst row2 =\nsheetData.find(\n  r => Number(r.row_number) === 2\n);\n\nif (row2) {\n\n  items.push({\n    json: {\n\n      range:\n        SHEET_NAME + '!A2',\n\n      values: [[\n        String(row2.col_1 || '')\n      ]]\n\n    }\n  });\n\n}\n\n// ============================================\n// PROJECT TIMELINE\n// COLUMN B\n// ============================================\n\nfor (const row of sheetData) {\n\n  const rowNumber =\n    Number(row.row_number);\n\n  if (!rowNumber) continue;\n\n  if (skipRows[rowNumber]) {\n    continue;\n  }\n\n  if (rowNumber >= 4) {\n\n    items.push({\n\n      json: {\n\n        range:\n          SHEET_NAME +\n          '!B' +\n          rowNumber,\n\n        values: [[\n          String(\n            row['PROJECT TIMELINE'] || ''\n          )\n        ]]\n\n      }\n\n    });\n\n  }\n\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1328,
+        2160
+      ],
+      "id": "18bca7fe-ed23-49bc-a3cf-aa3259dbd091",
+      "name": "project name & WHO"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        2160
+      ],
+      "id": "4600e5ce-7054-4fc9-b482-583aad0723a6",
+      "name": "Limit1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// START + END DATES\n// MULTIPLE ITEMS\n// ============================================\n\nconst sheetData =\n$('updated sheet data')\n.first()\n.json\n.sheet_data;\n\nconst rawSheetName =\n$('job type for template')\n.first()\n.json\n.job_type;\n\nconst SHEET_NAME =\n\"'\" + String(rawSheetName).trim() + \"'\";\n\nconst skipRows = {\n  3: true\n};\n\nconst items = [];\n\nfor (const row of sheetData) {\n\n  const rowNumber =\n    Number(row.row_number);\n\n  if (!rowNumber) continue;\n\n  if (skipRows[rowNumber]) {\n    continue;\n  }\n\n  if (rowNumber >= 4) {\n\n    items.push({\n\n      json: {\n\n        range:\n          SHEET_NAME +\n          '!D' +\n          rowNumber +\n          ':E' +\n          rowNumber,\n\n        values: [[\n\n          String(row.col_4 || ''),\n          String(row.col_5 || '')\n\n        ]]\n\n      }\n\n    });\n\n  }\n\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -784,
+        2160
+      ],
+      "id": "70fad644-806d-494c-8992-536710094b22",
+      "name": "start date & end date",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ad96b05f-dd6c-425e-8675-65ddaca806d9",
+              "name": "host_email",
+              "value": "={{ $node['When Executed by Another Workflow'].json.host_email }}",
+              "type": "string"
+            },
+            {
+              "id": "27a6bcad-6004-4ebe-b23f-324777fa4ee3",
+              "name": "New_Job_folder_ID",
+              "value": "={{ $node['When Executed by Another Workflow'].json.New_Job_folder_ID }}",
+              "type": "string"
+            },
+            {
+              "id": "a2268563-b8a2-47cc-9794-bcec4f1cbe8f",
+              "name": "Production_Folder_ID",
+              "value": "={{ $('When Executed by Another Workflow').item.json.production_folder_ID }}",
+              "type": "string"
+            },
+            {
+              "id": "658c61d8-054e-4f6b-aadf-2306eee255da",
+              "name": "Scope_of_Work_ID",
+              "value": "={{ $node['When Executed by Another Workflow'].json.Scope_of_Work_ID }}",
+              "type": "string"
+            },
+            {
+              "id": "485e3a6b-3b5f-479d-a0ad-eccfbdac0719",
+              "name": "Timeline_Sheet_ID",
+              "value": "={{ $node['CREATE TIMELINE SHEET FROM TEMPLATE'].json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "dc18f0dc-ede8-47c4-916d-7c782a24eb19",
+              "name": "project_timeline",
+              "value": "={{ $json.output[0].content[0].text.timeline }}",
+              "type": "array"
+            },
+            {
+              "id": "f7f91e3f-b5c8-42a9-bf29-e1866eb0de76",
+              "name": "brief_data",
+              "value": "={{ $node['When Executed by Another Workflow'].json.brief_data }}",
+              "type": "array"
+            },
+            {
+              "id": "ae1a94c1-b0f1-4aa2-8b79-163a6df8fd1e",
+              "name": "estimate_data",
+              "value": "={{ $node['When Executed by Another Workflow'].json.estimate_data }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        144,
+        2160
+      ],
+      "id": "55d7b234-9d76-402e-bb2d-af672ab0980a",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "operation": "share",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "permissionsUi": {
+          "permissionsValues": {
+            "role": "writer",
+            "type": "anyone"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1104,
+        2624
+      ],
+      "id": "6c7e1550-7d0a-4ed9-826e-a902acfaa4c2",
+      "name": "share timeline",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "kRO08VsmP81eTjg8",
+          "name": "futuretech"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1472,
+        1952
+      ],
+      "id": "6f4d17a8-3e45-44a0-8ab1-14c363a8eacc",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const sheet = $input.first().json.sheet;\n\n// Find Production section\nconst productionHeaderIndex = sheet.findIndex(\n  row =>\n    row.col_1 &&\n    row.col_1.toString().trim().toLowerCase() === \"production\"\n);\n\nif (productionHeaderIndex === -1) {\n  throw new Error(\"Production section not found\");\n}\n\n// Get rows after Production header\nconst productionRows = [];\n\nfor (let i = productionHeaderIndex + 1; i < sheet.length; i++) {\n  const row = sheet[i];\n\n  // Section header = empty timeline + empty days\n  const isSectionHeader =\n    !row[\"PROJECT TIMELINE\"] &&\n    !row.col_3 &&\n    row.col_1;\n\n  if (isSectionHeader) {\n    break;\n  }\n\n  if (\n    row[\"PROJECT TIMELINE\"] &&\n    row.col_4 &&\n    row.col_5\n  ) {\n    productionRows.push(row);\n  }\n}\n\nif (!productionRows.length) {\n  throw new Error(\"No production timeline rows found\");\n}\n\nconst startDate = productionRows[0].col_4.trim();\nconst endDate = productionRows[productionRows.length - 1].col_5.trim();\n\nconst totalDays = productionRows.reduce(\n  (sum, row) => sum + (Number(row.col_3) || 0),\n  0\n);\n\nconst milestones = productionRows.map(row => ({\n  milestone_name: row.col_1,\n  start_date: row.col_4.trim(),\n  end_date: row.col_5.trim(),\n  days_allocated: Number(row.col_3) || 0\n}));\n\nreturn [\n  {\n    json: {\n      project_timeline: {\n        milestone_name: \"Production\",\n        start_date: startDate,\n        end_date: endDate,\n        days_allocated: totalDays,\n        task_count: productionRows.length,\n        milestones\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        2576
+      ],
+      "id": "68880917-aea4-4589-afc8-6dfc210189f9",
+      "name": "Code in JavaScript10",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "sheet",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        2576
+      ],
+      "id": "93d6656d-e385-4c3d-a1fc-0bbf78de37a6",
+      "name": "Aggregate2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## TEMPORARY NODES\n",
+        "height": 176,
+        "width": 336
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1136,
+        2560
+      ],
+      "typeVersion": 1,
+      "id": "2af8a0de-c7c1-4ced-8dc8-6cc5b0d417d5",
+      "name": "Sticky Note3",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Limit1').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "name": "={{ $('CREATE TIMELINE SHEET FROM TEMPLATE').item.json.name }}",
+        "sameFolder": false,
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('When Executed by Another Workflow').item.json.production_folder_ID }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -912,
+        2624
+      ],
+      "id": "a6a536b6-c962-4b27-80e8-d5c8d63aa064",
+      "name": "CORE - generated timeline from future tech",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "name": "={{ $node['When Executed by Another Workflow'].json.brief_data[0].job_number }}_Timeline",
+        "sameFolder": false,
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('job type for template').item.json.production_folder }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -880,
+        1952
+      ],
+      "id": "f519333d-4618-4b5a-a0ce-7e6bd5ce6565",
+      "name": "CREATE TIMELINE SHEET FROM TEMPLATE",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "=AutoMATES Timeplan_{{ $json.job_type }}",
+        "limit": 1,
+        "filter": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1072,
+        1952
+      ],
+      "id": "0c646896-6329-4e27-bd72-851ec3d6e4eb",
+      "name": "Search Jobtype Template",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        1952
+      ],
+      "id": "3ec119c5-8726-4de7-970f-17e4e3c94947",
+      "name": "wait for 5s",
+      "webhookId": "f3c76a7f-e912-4f0f-8749-8febbb5c50fe"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $('Search spreadsheet & get ID').item.json.id }}/values/{{ $json.range }}\n?valueInputOption=USER_ENTERED",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"values\": {{ JSON.stringify($json.values) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1152,
+        2160
+      ],
+      "id": "53908725-c3d7-4612-8c6b-d6071d4625cd",
+      "name": "insert col values",
+      "executeOnce": false,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $('Search spreadsheet & get ID').item.json.id }}/values/{{ $json.range }}\n?valueInputOption=USER_ENTERED",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"values\": {{ JSON.stringify($json.values) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -560,
+        2160
+      ],
+      "id": "5478cf32-eb40-40da-9add-458c10f9701e",
+      "name": "insert col values1",
+      "executeOnce": false,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('job type for template').item.json.job_type }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -736,
+        2576
+      ],
+      "id": "e537a947-8ecd-4f9d-86ff-950e0f083e70",
+      "name": "CORE - Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2e1e47c8-eff0-44e7-bcb6-69113d8f0500",
+              "name": "project_timeline",
+              "value": "={{ JSON.stringify($json.output[0].content[0].text.timeline[5]) }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -64,
+        2592
+      ],
+      "id": "4d1c0af3-4ad2-4ffe-afbf-23f705895649",
+      "name": "project_timeline1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "GPT-5"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are a Production Timeline AI Planner.\n\nYour task is to generate a reverse production timeline using:\n\n1. The project deadline\n2. Estimated employee production hours\n3. Fixed workflow stages\n\n---\n\n## INPUTS\nbrief_deadline:\n{{ JSON.stringify($('When Executed by Another Workflow').item.json.brief_data[0].deadline) }}\n\nestimate_hours:\n{{JSON.stringify($('When Executed by Another Workflow').item.json.estimate_data) }}\n\n────────────────────────────────────────────\nCURRENT SYSTEM DATE RULES\n────────────────────────────────────────────\n\nYou MUST use the current runtime system date internally when interpreting all dates.\n\nIMPORTANT:\n- Always use the CURRENT runtime year [{{$now.format('yyyy-MM-dd')}}]\n- NEVER trust years mentioned in the brief if they are old/past years\n- Examples : -\n If the brief mentions:\n  - 2023\n  - 2024\n  - 2025\n  but the current runtime year is 2026,\n  then ALL generated dates MUST use 2026\n\nExamples:\n- \"August 2024\"\n  → interpret as August CURRENT YEAR\n\n- \"End of June 2023\"\n  → interpret as June CURRENT YEAR\n\n- \"Campaign due next month\"\n  → calculate relative to current runtime date\n\n- \"January launch\"\n  → interpret using current runtime year\n\nThe AI MUST internally use:\n- current runtime date\n- current runtime month\n- current runtime year\n\nfor ALL timeline calculations.\n---\n\n## CORE RULES\n\n1. Each \"Units\" value represents HOURS.\n   Example:\n\n   * 1.00 Units = 1 hour\n   * 8.00 Units = 8 hours = 1 working day\n\n2. One business day = 8 working hours.\n\n3. Only Monday–Friday are working days.\n   Saturdays and Sundays are NOT working days.\n\n4. Timeline must always work BACKWARDS from the final deadline.\n\n5. If the deadline falls on:\n\n   * Saturday → move to Friday\n   * Sunday → move to Friday\n\n6. Production duration must be dynamically calculated from total employee hours.\n\n---\n\n## FIXED STAGES\n\nThese stages are ALWAYS included:\n\n1. Briefing → 2 business days\n2. Concept Development → 5 business days\n3. Internal Review → 2 business days\n4. Client Presentation → 1 business day\n5. Revisions → 3 business days\n6. Production → dynamically calculated\n\n---\n\n## PRODUCTION CALCULATION\n\nFormula:\n\ntotal_production_hours =\nsum(all Units values from valid Time entries)\n\nproduction_days =\nCEILING(total_production_hours / 8)\n\nExample:\n\n* 70 hours = 8.75 days\n* rounded up = 9 business days\n\n---\n\n## DEADLINE PARSING RULES\n\nUse this priority order:\n\nPRIORITY 1:\nIf brief_deadline.iso_date exists,\nuse that directly.\n\nPRIORITY 2:\nIf iso_date is null,\nextract from brief_deadline.raw.\n\nSupported examples:\n\n* \"August\"\n* \"Jan\"\n* \"January 2025\"\n* \"End of June\"\n* \"End of August\"\n\nRules:\n\n* If only month is provided,\n  use LAST DAY of that month.\n* If year missing,\n  use current year.\n* \"End of June\" = June 30\n* \"August\" = August 31\n\nIf parsing fails:\nfallback = START FIRST TIMELINE PHASE/STAGE FROM CURRENT DATE: {{ $now.format('yyyy-MM-dd') }}\n---\n\n## BUSINESS DAY RULES\n\nWhen calculating:\n\n* Skip weekends\n* Never place stage start/end on Saturday/Sunday\n* Every stage must use business days only\n\n---\n────────────────────────────────────────────\nPUBLIC HOLIDAY & NON-WORKING DAY SYSTEM\n────────────────────────────────────────────\n\nIMPORTANT:\n\nYou have access to Google Sheet Tool:\n\n\"GET PUBLIC HOLIDAYS1\"\n\nYou MUST call this tool BEFORE performing timeline calculations.\n\nThe tool contains:\n\n* Australian public holidays\n* Substitute holidays\n* Agency shutdown periods\n* Company non-working days\n\nExamples:\n\n* Christmas Day\n* Boxing Day\n* Australia Day\n* Easter Monday\n* Core Agency Shutdown Period\n\n\n##MANDATORY TOOL USAGE\n\n\nBefore calculating ANY:\n\n* stage start date\n* stage end date\n* next business day\n* previous business day\n* duration progression\n\nYou MUST:\n\n1. Call GET PUBLIC HOLIDAYS1\n2. Load ALL relevant years used in the timeline\n3. Build an internal NON_WORKING_DAY calendar\n\nExample:\n\nIf project spans:\n\n* Dec 2026 → Jan 2027\n\nTHEN load:\n\n* 2026 holidays\n* 2027 holidays\n\n##HOLIDAY CALENDAR CONFIRMATION STEP\n\nAfter calling GET PUBLIC HOLIDAYS1 and BEFORE any stage calculation:\n\nYou MUST explicitly list every non-working date identified.\n\nFormat internally as:\n\nNON_WORKING_DAYS = [\n  \"YYYY-MM-DD\",  // Description\n  \"YYYY-MM-DD\",  // Description\n]\n\nOnly after this list is built may you proceed to stage calculations.\n\nIf this step is skipped → abort and restart from tool call.\n\n##NON-WORKING DAY DEFINITION\n\n\nA NON-WORKING DAY is ANY:\n\n* Saturday\n* Sunday\n* Public Holiday\n* Substitute Holiday\n* Shutdown Day\n* Agency Closure Day\n* Any date returned from GET PUBLIC HOLIDAYS1\n\nNO work may occur on these dates.\n\n\n##WORKING DAY VALIDATION RULE\n\n\nBefore assigning ANY date:\n\n* stage start\n* stage end\n* calculated deadline\n\nYou MUST validate the date.\n\nIf the date is NON-WORKING:\n→ move to nearest VALID business day.\n\nBACKWARD scheduling:\n→ move backward\n\nFORWARD scheduling:\n→ move forward\n\n\n##DURATION COUNT RULE\n\n\nStage durations count ONLY VALID WORKING DAYS.\n\nDO NOT count:\n\n* weekends\n* public holidays\n* shutdown periods\n* substitute holidays\n\nExample:\n\nDuration = 5 days\n\nIf timeline contains:\n\n* Saturday\n* Sunday\n* Australia Day\n\nThose dates DO NOT count toward duration.\n\n\n##SEQUENTIAL FLOW ENFORCEMENT\n\n\nAfter holiday adjustments:\n\n* tasks must remain sequential\n* no overlapping stages\n* no disconnected gaps\n* no compressed durations\n\nTimeline integrity MUST remain preserved.\n\n\n##FINAL CALENDAR VALIDATION\n\n\nBefore returning final JSON:\n\nValidate that:\n\n* no stage falls on weekends\n* no stage falls on public holidays\n* no stage falls on shutdown days\n* all durations count only valid working days\n* all dates are business-calendar safe\n\n#HOLIDAY TOOL RESPONSE FORMAT EXAMPLE\n\nThe GET PUBLIC HOLIDAYS1 tool returns rows like:\n\n[\n{\n\"Year\": 2026,\n\"Public Holidays\": \"Fri, 25 December\",\n\"Description\": \"Christmas Day\"\n},\n{\n\"Year\": \"\",\n\"Public Holidays\": \"Mon, 28 December\",\n\"Description\": \"Boxing Day Substitute\"\n},\n{\n\"Year\": \"\",\n\"Public Holidays\": \"Tue, 29 December\",\n\"Description\": \"Core Agency Shutdown Period\"\n}\n]\n\nIMPORTANT:\n\n* Blank Year values inherit the most recent previous year\n* ALL returned dates are NON-WORKING DAYS\n* Shutdown periods behave exactly like public holidays\n* NEVER schedule work on these dates\n\n---\n\n## TIMELINE GENERATION LOGIC\n\nBuild the schedule in REVERSE ORDER:\n\n1. Start from final deadline\n2. Allocate Production stage backwards\n3. Then Revisions\n4. Then Client Presentation\n5. Then Internal Review\n6. Then Concept Development\n7. Then Briefing\n\nEach stage must contain:\n\n* milestone_name\n* start_date\n* end_date\n* days_allocated\n\nDates format:\nYYYY-MM-DD\n\n---\n\n## OUTPUT FORMAT\n\nReturn ONLY valid JSON.\n\nStructure:\n\nReturn ONLY valid JSON.\n\n{\n  \"brief_timeline_year\": \"current runtime year\",\n  \"final_deadline\": \"YYYY-MM-DD\",\n  \"total_production_hours\": 120,\n  \"production_days\": 15,\n  \"total_stages\": 6,\n  \"timeline\": [\n    {\n      \"milestone_name\": \"Briefing\",\n      \"start_date\": \"YYYY-MM-DD\",\n      \"end_date\": \"YYYY-MM-DD\",\n      \"days_allocated\": 2\n    }\n  ],\n  \"timeline_text\": \"formatted readable timeline\",\n  \"key_dates\": {\n    \"project_start\": \"YYYY-MM-DD\",\n    \"internal_review\": \"YYYY-MM-DD\",\n    \"client_presentation\": \"YYYY-MM-DD\",\n    \"production_start\": \"YYYY-MM-DD\",\n    \"final_deadline\": \"YYYY-MM-DD\"\n  }\n}\n\n---\n\n## IMPORTANT\n\n* Return ONLY JSON\n* No markdown\n* No explanations\n* No extra text\n* No comments\n* No code blocks\n* Ensure all dates are business-day safe\n* Production stage must be dynamically calculated from total hours\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_schema",
+              "schema": "{\n\"type\": \"object\",\n\"properties\": {\n\"brief_timeline_year\": {\n\"type\": \"integer\"\n},\n\"final_deadline\": {\n\"type\": \"string\"\n},\n\"total_production_hours\": {\n\"type\": \"number\"\n},\n\"production_days\": {\n\"type\": \"integer\"\n},\n\"total_stages\": {\n\"type\": \"integer\"\n},\n\"timeline\": {\n\"type\": \"array\",\n\"items\": {\n\"type\": \"object\",\n\"properties\": {\n\"milestone_name\": {\n\"type\": \"string\"\n},\n\"start_date\": {\n\"type\": \"string\"\n},\n\"end_date\": {\n\"type\": \"string\"\n},\n\"days_allocated\": {\n\"type\": \"integer\"\n}\n},\n\"required\": [\n\"milestone_name\",\n\"start_date\",\n\"end_date\",\n\"days_allocated\"\n],\n\"additionalProperties\": false\n}\n},\n\"timeline_text\": {\n\"type\": \"string\"\n},\n\"key_dates\": {\n\"type\": \"object\",\n\"properties\": {\n\"project_start\": {\n\"type\": [\n\"string\",\n\"null\"\n]\n},\n\"internal_review\": {\n\"type\": [\n\"string\",\n\"null\"\n]\n},\n\"client_presentation\": {\n\"type\": [\n\"string\",\n\"null\"\n]\n},\n\"production_start\": {\n\"type\": [\n\"string\",\n\"null\"\n]\n},\n\"final_deadline\": {\n\"type\": [\n\"string\",\n\"null\"\n]\n}\n},\n\"required\": [\n\"project_start\",\n\"internal_review\",\n\"client_presentation\",\n\"production_start\",\n\"final_deadline\"\n],\n\"additionalProperties\": false\n}\n},\n\"required\": [\n\"brief_timeline_year\",\n\"final_deadline\",\n\"total_production_hours\",\n\"production_days\",\n\"total_stages\",\n\"timeline\",\n\"timeline_text\",\n\"key_dates\"\n],\n\"additionalProperties\": false\n}\n"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        -144,
+        2160
+      ],
+      "id": "701bf886-5319-4b29-93ca-d5980299e9de",
+      "name": "timeline stages2",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "v1DQHKLXrdQIocpO",
+          "name": "OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('job type for template').item.json.job_type }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -688,
+        1952
+      ],
+      "id": "cc978f69-e23a-4953-88bd-b1dd949cf08a",
+      "name": "core - timeline template",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1klMqvx-QaBedklgZ3TgIVK0Kml3Ty2IP3zB896WZkwU",
+          "mode": "list",
+          "cachedResultName": "AutoMATES Timeplan_Public Holidays",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1klMqvx-QaBedklgZ3TgIVK0Kml3Ty2IP3zB896WZkwU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 828658211,
+          "mode": "list",
+          "cachedResultName": "Public Holidays",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1klMqvx-QaBedklgZ3TgIVK0Kml3Ty2IP3zB896WZkwU/edit#gid=828658211"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        -288,
+        1984
+      ],
+      "id": "40cb3a7f-093c-4a06-93ed-1e4bf1c0e1cf",
+      "name": "GET PUBLIC HOLIDAYS",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1klMqvx-QaBedklgZ3TgIVK0Kml3Ty2IP3zB896WZkwU",
+          "mode": "list",
+          "cachedResultName": "AutoMATES Timeplan_Public Holidays",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1klMqvx-QaBedklgZ3TgIVK0Kml3Ty2IP3zB896WZkwU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 828658211,
+          "mode": "list",
+          "cachedResultName": "Public Holidays",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1klMqvx-QaBedklgZ3TgIVK0Kml3Ty2IP3zB896WZkwU/edit#gid=828658211"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        -112,
+        2336
+      ],
+      "id": "65e4e83d-3c21-47db-86cd-b6a2ed75f653",
+      "name": "GET PUBLIC HOLIDAYS1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "deleteFile",
+        "fileId": {
+          "__rl": true,
+          "value": "1U13elCFKVI45ya8ei46e8ZYZ0V7h3l5XB-M08qjHARs",
+          "mode": "list",
+          "cachedResultName": "QBEA0890_Timeline",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1U13elCFKVI45ya8ei46e8ZYZ0V7h3l5XB-M08qjHARs/edit?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -640,
+        1728
+      ],
+      "id": "58e95aff-db3f-4d08-b269-96bebaf4fc95",
+      "name": "CREATE TIMELINE SHEET FROM TEMPLATE2",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// PROJECT NAME + TIMELINE\n// MULTIPLE ITEMS\n// ============================================\n\nconst sheetData =\n$('updated sheet data')\n.first()\n.json\n.sheet_data;\n\nconst rawSheetName =\n$('job type for template')\n.first()\n.json\n.job_type;\n\nconst SHEET_NAME =\n\"'\" + String(rawSheetName).trim() + \"'\";\n\nconst skipRows = {\n  3: true,\n  13: true,\n  30: true\n};\n\nconst items = [];\n\n// ============================================\n// ROW 2 -> PROJECT NAME\n// ============================================\n\nconst row2 =\nsheetData.find(\n  r => Number(r.row_number) === 2\n);\n\nif (row2) {\n\n  items.push({\n    json: {\n\n      range:\n        SHEET_NAME + '!A2',\n\n      values: [[\n        String(row2.col_1 || '')\n      ]]\n\n    }\n  });\n\n}\n\n// ============================================\n// PROJECT TIMELINE\n// COLUMN B\n// ============================================\n\nfor (const row of sheetData) {\n\n  const rowNumber =\n    Number(row.row_number);\n\n  if (!rowNumber) continue;\n\n  if (skipRows[rowNumber]) {\n    continue;\n  }\n\n  if (rowNumber >= 4) {\n\n    items.push({\n\n      json: {\n\n        range:\n          SHEET_NAME +\n          '!B' +\n          rowNumber,\n\n        values: [[\n          String(\n            row['PROJECT TIMELINE'] || ''\n          )\n        ]]\n\n      }\n\n    });\n\n  }\n\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1328,
+        2384
+      ],
+      "id": "a92f62d5-2178-4cf1-9e06-969e14739bbf",
+      "name": "project name & WHO2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## TIMELINE DOC CREATION\n",
+        "height": 80,
+        "width": 352
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2032,
+        1968
+      ],
+      "typeVersion": 1,
+      "id": "e3b97889-175e-46f9-8af6-340f47db54f1",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "GPT-5"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are an expert spreadsheet timeline automation assistant.\n\nYour task is to intelligently update specific cells inside a project timeline spreadsheet while preserving the existing sheet structure exactly.\n\nYou will receive:\n\n1. Project details\n2. Client code\n3. Full sheet row data\n4. Google Sheet Tool Integrated \"GET PUBLIC HOLIDAYS\"\n\nYou must fully understand the sheet structure before making updates.\n\n════════════════════════════════════════════\nPRIMARY OBJECTIVE\n════════════════════════════════════════════\n\nYour job is to:\n\n1. Update the project name\n2. Populate PROJECT TIMELINE ownership values\n3. Calculate sequential working-day timelines\n4. Preserve ALL spreadsheet integrity\n\nYou are NOT allowed to:\n\n* reorder rows\n* remove rows\n* change durations\n* alter unrelated values\n* invent missing data\n\nYou must behave like a real production operations scheduler.\n\n════════════════════════════════════════════\nTASK 1 — UPDATE PROJECT NAME\n════════════════════════════════════════════\n\nFind:\n\n* Row Number = 2\n* Column = col_1\n\nCurrent Example:\nPROJECT: <Project Name Here>\n\nReplace ONLY the value inside col_1 with:\n\nPROJECT: {{ $('When Executed by Another Workflow').item.json.brief_data[0].client_name }}\n\nDo NOT modify:\n\n* any other column\n* any other row\n* formatting structure\n\n════════════════════════════════════════════\nTASK 2 — UPDATE PROJECT TIMELINE VALUES\n════════════════════════════════════════════\n\nProcess rows:\n\n* starting from row number 4\n* until the final row\n\n════════════════════════════════════════════\nROW SKIP RULE (CRITICAL)\n════════════════════════════════════════════\n\nCompletely SKIP rows where:\n\n* col_3 is empty\n* col_3 is null\n\nSkipped rows:\n\n* MUST remain unchanged\n* MUST NOT receive dates\n* MUST NOT receive PROJECT TIMELINE updates\n\n════════════════════════════════════════════\nPROJECT TIMELINE ASSIGNMENT LOGIC(MUST)\n════════════════════════════════════════════\n\nFor each valid row:\n\nSTEP 1:\nConvert col_1 to lowercase.\n\nSTEP 2:\nCheck whether col_1 contains ANY of these keywords:\n\n* feedback\n* approval\n\nIf TRUE:\n\nPROJECT TIMELINE =\nFirst 3 characters of client code\n\nExample:\nClient code = JBCP\nResult = JBC\n\nIf FALSE:\n\nPROJECT TIMELINE = TCA\n\n════════════════════════════════════════════\nCLIENT INPUT DETAILS\n════════════════════════════════════════════\n\nProject Name:\n{{ $('When Executed by Another Workflow').item.json.brief_data[0].client_name }}\n\nClient Code:\n{{ $('When Executed by Another Workflow').item.json.brief_data[0].client_code }}\n\n════════════════════════════════════════════\nTASK 3 — CALCULATE START & END DATES\n════════════════════════════════════════════\n\nYou must calculate:\n\n* col_4 = START DATE\n* col_5 = END DATE\n\nOnly process VALID rows.\n\nValid rows are rows where:\n\n* col_3 contains a duration value\n\n════════════════════════════════════════════\nIMPORTANT DATE INPUTS\n════════════════════════════════════════════\n\nProject Deadline Input:\n{{ JSON.stringify($('When Executed by Another Workflow').item.json.brief_data[0].deadline) }}\n\nExample Input:\n{\n\"raw\": \"1st June 2026\",\n\"iso_date\": \"2026-06-01\"\n}\n\nCurrent System Date:\n{{ $now.format('yyyy-MM-dd') }}\n\n════════════════════════════════════════════\nDATE INTERPRETATION RULES\n════════════════════════════════════════════\n\n1. PRIMARY DATE SOURCE\n\nAlways use:\n\n* iso_date\n\nIF:\n\n* iso_date exists\n* iso_date is valid\n\nOtherwise:\n→ use raw date value.\n\n════════════════════════════════════════════\nRAW DATE NORMALIZATION\n════════════════════════════════════════════\n\nIf raw date contains ONLY:\n\n* Month + Year\n\nExample:\n\n* February 2025\n\nTHEN:\n\nAutomatically resolve the date to:\n→ LAST WORKING DAY of that month.\n\nWorking day definition:\n\n* Monday to Friday only\n* Never Saturday\n* Never Sunday\n\nExamples:\n\nFebruary 2025\n→ 2025-02-28\n\nAugust 2025\n→ if Aug 31 is Sunday\n→ use Friday Aug 29\n\n════════════════════════════════════════════\nSPECIFIC DATE RULE\n════════════════════════════════════════════\n\nIf raw date already includes a specific day:\n\nExamples:\n\n* 15 February 2025\n* 2025-02-15\n\nTHEN:\n\n* preserve exact date\n* do NOT move to month end\n\n════════════════════════════════════════════\nPAST DATE VALIDATION\n════════════════════════════════════════════\n\nCompare resolved dates against:\nCurrent System Date\n\nIf deadline is already in the past:\n\n* preserve the original resolved date\n* continue calculations normally\n\n════════════════════════════════════════════\nFINAL DATE NORMALIZATION\n════════════════════════════════════════════\n\nInternally normalize all resolved dates into:\n\nYYYY-MM-DD\n\n════════════════════════════════════════════\nCRITICAL DURATION RULE\n════════════════════════════════════════════\n\ncol_3 ALWAYS represents:\nWORKING DAYS\n\nYou MUST use col_3 exactly as provided.\n\nDO NOT:\n\n* modify durations\n* estimate durations\n* invent durations\n* round durations\n\nExamples:\n\n* 1 = 1 working day\n* 5 = 5 working days\n* 20 = 20 working days\n\n════════════════════════════════════════════\nWORKING DAY RULES\n════════════════════════════════════════════\n\nONLY:\n\n* Monday\n* Tuesday\n* Wednesday\n* Thursday\n* Friday\n\nare valid working days.\n\nNEVER allow:\n\n* Saturday\n* Sunday\n\nin:\n\n* col_4\n* col_5\n\n════════════════════════════════════════════\nPUBLIC HOLIDAY & NON-WORKING DAY SYSTEM\n════════════════════════════════════════════\n\nIMPORTANT:\nYou have access to a Google Sheet tool:\n\nGET PUBLIC HOLIDAYS\n\nYou MUST call this tool BEFORE performing ANY timeline calculations.\n\nThe sheet contains:\n\n* Australian public holidays\n* Agency shutdown dates\n* Substitute holidays\n* Company-wide non-working days\n\nThe tool output includes rows like:\n\nYear | Public Holidays | Description\n\nExamples:\n\n* Fri, 25 December → Christmas Day\n* Mon, 28 December → Boxing Day Substitute\n* Wed, 27 December → Core Agency Shutdown Period\n\n#HOLIDAY TOOL RESPONSE FORMAT EXAMPLE\n\nThe GET PUBLIC HOLIDAYS1 tool returns rows like:\n\n[\n{\n\"Year\": 2026,\n\"Public Holidays\": \"Fri, 25 December\",\n\"Description\": \"Christmas Day\"\n},\n{\n\"Year\": \"\",\n\"Public Holidays\": \"Mon, 28 December\",\n\"Description\": \"Boxing Day Substitute\"\n},\n{\n\"Year\": \"\",\n\"Public Holidays\": \"Tue, 29 December\",\n\"Description\": \"Core Agency Shutdown Period\"\n}\n]\n\nIMPORTANT:\n\n* Blank Year values inherit the most recent previous year\n* ALL returned dates are NON-WORKING DAYS\n* Shutdown periods behave exactly like public holidays\n* NEVER schedule work on these dates\n\n════════════════════════════════════════════\nMANDATORY TOOL USAGE RULE\n════════════════════════════════════════════\n\nBEFORE calculating ANY:\n\n* start date\n* end date\n* next working day\n* previous working day\n* task duration progression\n\nYou MUST:\n\n1. Call GET PUBLIC HOLIDAYS\n2. Load ALL holiday rows relevant to the scheduling year(s)\n3. Build an internal NON-WORKING DAY calendar\n\n════════════════════════════════════════════\nHOLIDAY CALENDAR CONFIRMATION STEP\n════════════════════════════════════════════\n\nAfter calling GET PUBLIC HOLIDAYS and BEFORE any date calculation:\n\nYou MUST explicitly list every non-working date identified.\n\nFormat internally as:\n\nNON_WORKING_DAYS = [\n  \"YYYY-MM-DD\",  // Description\n  \"YYYY-MM-DD\",  // Description\n]\n\nOnly after this list is built may you proceed to date calculations.\n\nIf this step is skipped → abort and restart from tool call.\n\n════════════════════════════════════════════\nNON-WORKING DAYS DEFINITION\n════════════════════════════════════════════\n\nA NON-WORKING DAY is ANY date that is:\n\n1. Saturday\n2. Sunday\n3. Australian Public Holiday\n4. Substitute Holiday\n5. Core Agency Shutdown Day\n6. Any date returned from GET PUBLIC HOLIDAYS\n\nALL returned holiday dates MUST be treated EXACTLY like weekends.\n\nNO work may occur on those dates.\n\n════════════════════════════════════════════\nCRITICAL DATE VALIDATION RULE\n════════════════════════════════════════════\n\nEVERY calculated date MUST be validated.\n\nBefore assigning ANY:\n\n* col_4\n* col_5\n* task start\n* task end\n\nYou MUST check:\n\nIS THIS DATE:\n\n* Saturday?\n* Sunday?\n* Public holiday?\n* Shutdown day?\n* Substitute holiday?\n\nIF YES:\n→ move to nearest valid working day.\n\n════════════════════════════════════════════\nBACKWARD MODE HOLIDAY RULES\n════════════════════════════════════════════\n\nWhen scheduling backward:\n\nIf calculated date lands on NON-WORKING DAY:\n→ move backward until valid working day found.\n\nExample:\n\nCalculated end date:\nMon, 28 Dec\n\nBut:\nMon, 28 Dec = Boxing Day Substitute Holiday\n\nTHEN:\n→ move to Fri, 25 Dec is invalid\n→ Thu, 24 Dec valid\n→ use Thu, 24 Dec\n\n════════════════════════════════════════════\nFORWARD MODE HOLIDAY RULES\n════════════════════════════════════════════\n\nWhen scheduling forward:\n\nIf calculated date lands on NON-WORKING DAY:\n→ move forward until valid working day found.\n\nExample:\n\nCalculated start date:\nMon, 26 Jan\n\nBut:\nAustralia Day Holiday\n\nTHEN:\n→ move to Tue, 27 Jan\n\n════════════════════════════════════════════\nSEQUENTIAL TASK RULES\n════════════════════════════════════════════\n\nTasks MUST remain fully sequential even after holiday adjustments.\n\nThis means:\n\n* No overlapping tasks\n* No skipped durations\n* No compressed schedules\n* Duration count must ONLY count VALID WORKING DAYS\n\n════════════════════════════════════════════\nWORKING DAY COUNT RULE\n════════════════════════════════════════════\n\nIMPORTANT:\n\nTask durations represent:\nVALID BUSINESS WORKING DAYS ONLY.\n\nDO NOT count:\n\n* weekends\n* public holidays\n* shutdown days\n* substitute holidays\n\nExample:\n\nDuration = 5 days\n\nIf timeline contains:\n\n* Saturday\n* Sunday\n* Australia Day holiday\n\nThose dates MUST NOT count toward the 5 days.\n\n════════════════════════════════════════════\nYEAR RESOLUTION RULE\n════════════════════════════════════════════\n\nWhen calling GET PUBLIC HOLIDAYS:\n\nYou MUST fetch ALL years relevant to the project timeline.\n\nExamples:\n\nIf project spans:\n\n* Dec 2026 → Jan 2027\n\nTHEN:\nfetch:\n\n* 2026 holidays\n* 2027 holidays\n\n════════════════════════════════════════════\nSHUTDOWN PERIOD RULE\n════════════════════════════════════════════\n\n\"Core Agency Shutdown Period\" entries are FULL non-working days.\n\nTreat them exactly the same as public holidays.\n\nNO work may occur during shutdown dates.\n\n════════════════════════════════════════════\nSTRICT CALENDAR ENFORCEMENT\n════════════════════════════════════════════\n\nA valid working day MUST satisfy ALL conditions:\n\n✓ Monday-Friday\n✓ NOT public holiday\n✓ NOT substitute holiday\n✓ NOT shutdown period\n✓ NOT agency closure date\n\nOnly then may work be scheduled.\n\n════════════════════════════════════════════\nFINAL VALIDATION RULE\n════════════════════════════════════════════\n\nBefore returning final JSON:\n\nYou MUST validate that:\n\n* no task date falls on holiday\n* no task date falls on shutdown day\n* no task date falls on weekend\n* all durations count only working days\n* sequential flow remains intact\n* all dates are business-calendar safe\n\n════════════════════════════════════════════\nWORKING DAY CALCULATION EXAMPLE\n════════════════════════════════════════════\n\nStart = Thursday\nDuration = 3\n\nResult:\nEnd = Monday\n\nBecause:\n\n* Saturday skipped\n* Sunday skipped\n\n════════════════════════════════════════════\nSCHEDULING MODES\n════════════════════════════════════════════\n\nThere are TWO scheduling modes.\n\n════════════════════════════════════════════\nMODE 1 — DEADLINE EXISTS (PRIMARY MODE)\n════════════════════════════════════════════\n\nIf a valid project deadline exists:\n\nTHEN:\n\nBuild the schedule BACKWARD from the deadline.\n\nRules:\n\n* Final valid row's END DATE MUST equal project deadline\n* Use col_3 durations exactly\n* Preserve row order\n* Preserve sequential task flow\n* Skip weekends\n* No overlapping tasks\n\nBackward scheduling logic:\n\nEach previous task:\n\n* ends before next task begins\n* starts based on its own duration\n\nExample:\n\nDeadline = Fri, 30 October\n\nLast task:\n\n* Start = Mon, 26 October\n* End = Fri, 30 October\n\nPrevious task:\n\n* calculated backward logically\n\n════════════════════════════════════════════\nMODE 2 — DEADLINE MISSING\n════════════════════════════════════════════\n\nIf project deadline is:\n\n* null\n* empty\n* missing\n\nTHEN:\n\nBuild schedule FORWARD from:\nCurrent System Date\n\nRules:\n\n* First valid task starts from current system date\n* Each next task starts after previous task ends\n* Skip weekends\n* Preserve durations exactly\n\n════════════════════════════════════════════\nSEQUENTIAL FLOW RULES\n════════════════════════════════════════════\n\nTasks MUST flow sequentially.\n\nFORWARD MODE:\n\n* next task starts next working day after previous task ends\n\nBACKWARD MODE:\n\n* previous task ends previous working day before next task starts\n\nThere must NEVER be:\n\n* overlapping dates\n* disconnected timeline gaps\n* weekend dates\n\n════════════════════════════════════════════\nDATE FORMAT RULE\n════════════════════════════════════════════\n\nALL output dates MUST use EXACT format:\n\nTue, 03 November\n\nExamples:\n\n* Mon, 12 January\n* Fri, 28 March\n\n════════════════════════════════════════════\nSTRICT PRESERVATION RULES\n════════════════════════════════════════════\n\nYou MUST preserve:\n\n* all rows\n* all columns\n* all existing values (col_3 MUST BE NOT MODIFIED)\n* original row ordering\n* original JSON structure\n\nONLY allowed modifications:\n\n1. row 2 → col_1\n2. PROJECT TIMELINE\n3. col_4\n4. col_5\n\nALL OTHER VALUES MUST REMAIN IDENTICAL.\n\n════════════════════════════════════════════\nOUTPUT RULES\n════════════════════════════════════════════\n\nReturn:\nVALID RAW JSON ONLY\n\nDO NOT:\n\n* use markdown\n* add explanations\n* add comments\n* add analysis\n* add extra text\n\n════════════════════════════════════════════\nFINAL OUTPUT FORMAT\n════════════════════════════════════════════\n\n{\n\"sheet_data\": [...]\n}\n\n════════════════════════════════════════════\nINPUT DATA\n════════════════════════════════════════════\n\nsheet data:\n{{ JSON.stringify($json.sheet_data) }}\n\n════════════════════════════════════════════\nFAILSAFE ERROR HANDLING\n════════════════════════════════════════════\n\nIf ANY critical scheduling dependency fails:\n\nExamples:\n\n* holiday tool unavailable\n* malformed dates\n* invalid sheet rows\n* corrupted durations\n* missing required columns\n* impossible scheduling flow\n* invalid timeline calculations\n\nTHEN:\n\n1. preserve original sheet structure\n2. preserve all rows\n3. preserve all unrelated values\n4. do NOT hallucinate fixes\n5. do NOT invent dates\n6. do NOT fabricate schedules\n7. leave unresolved rows unchanged\n8. return safest possible valid JSON\n\nUnder failure conditions:\n\n* prioritize spreadsheet integrity\n* prioritize valid JSON\n* prioritize non-destructive behavior\n\nNEVER generate fake timeline data.\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_schema",
+              "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"data\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"sheet_data\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"row_number\": {\n                  \"type\": \"number\"\n                },\n                \"col_1\": {\n                  \"type\": \"string\"\n                },\n                \"PROJECT TIMELINE\": {\n                  \"type\": \"string\"\n                },\n                \"col_3\": {\n                  \"type\": \"number\"\n                },\n                \"col_4\": {\n                  \"type\": \"string\"\n                },\n                \"col_5\": {\n                  \"type\": \"string\"\n                }\n              },\n              \"required\": [\n                \"row_number\",\n                \"col_1\",\n                \"PROJECT TIMELINE\",\n                \"col_3\",\n                \"col_4\",\n                \"col_5\"\n              ],\n              \"additionalProperties\": false\n            }\n          }\n        },\n        \"required\": [\n          \"sheet_data\"\n        ],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": [\n    \"data\"\n  ],\n  \"additionalProperties\": false\n}",
+              "strict": true
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        -304,
+        1664
+      ],
+      "id": "ae090584-49ec-449d-9863-95605765ecfd",
+      "name": "generate timeline1",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "v1DQHKLXrdQIocpO",
+          "name": "OpenAI"
+        }
+      },
+      "disabled": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "generate timeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate timeline": {
+      "main": [
+        [
+          {
+            "node": "updated sheet data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "job type for template": {
+      "main": [
+        [
+          {
+            "node": "Search Jobtype Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updated sheet data": {
+      "main": [
+        [
+          {
+            "node": "wait for 5s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search spreadsheet & get ID": {
+      "main": [
+        [
+          {
+            "node": "project name & WHO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "project name & WHO": {
+      "main": [
+        [
+          {
+            "node": "insert col values",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "start date & end date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "start date & end date": {
+      "main": [
+        [
+          {
+            "node": "insert col values1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Call 'Pre Approval Tasks'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit1": {
+      "main": [
+        [
+          {
+            "node": "timeline stages2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "share timeline": {
+      "main": [
+        [
+          {
+            "node": "CORE - generated timeline from future tech",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "job type for template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript10": {
+      "main": [
+        []
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CORE - generated timeline from future tech": {
+      "main": [
+        []
+      ]
+    },
+    "CREATE TIMELINE SHEET FROM TEMPLATE": {
+      "main": [
+        [
+          {
+            "node": "core - timeline template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Jobtype Template": {
+      "main": [
+        [
+          {
+            "node": "CREATE TIMELINE SHEET FROM TEMPLATE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait for 5s": {
+      "main": [
+        [
+          {
+            "node": "Search spreadsheet & get ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "insert col values": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "insert col values1": {
+      "main": [
+        [
+          {
+            "node": "Limit1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CORE - Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "timeline stages2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "core - timeline template": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET PUBLIC HOLIDAYS": {
+      "ai_tool": [
+        [
+          {
+            "node": "generate timeline",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET PUBLIC HOLIDAYS1": {
+      "ai_tool": [
+        [
+          {
+            "node": "timeline stages2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8a1ff42d-c8d4-4a9e-b99a-51ea661edd75",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bbeea15b1024389331eb7374325878e8f2a1f4a74244cd3f4dc2bea8b92be6a4"
+  },
+  "nodeGroups": [],
+  "id": "ssGyf8l3GVAmK9iQ",
+  "tags": []
+}

@@ -1,0 +1,3514 @@
+{
+  "name": "03 Client Folder & Scope of Work",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Client Folder Structure",
+        "height": 80,
+        "width": 326
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -10192,
+        1664
+      ],
+      "typeVersion": 1,
+      "id": "958ae808-4451-4d41-9a53-0fe19ecb8b8c",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Scope of Work/Task Brief Generation\n\n",
+        "height": 80,
+        "width": 452,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -5968,
+        1616
+      ],
+      "typeVersion": 1,
+      "id": "948e01eb-db70-44a6-a9dd-14b7a64ca3e8",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8f6247cc-12d3-4d2b-9c00-a67053c0220c",
+              "name": "client_name",
+              "value": "={{ $json.brief_data[0].client_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -9552,
+        1632
+      ],
+      "id": "d8ad5ae9-32aa-49d0-86f5-740a144a8d24",
+      "name": "client name"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -9744,
+        1632
+      ],
+      "id": "3390cea5-4e2f-4f59-bcea-a7f490fa186b",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f47b7687-a1c1-4d3c-8eb9-9e64eed67cf2",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "={{ $('client name').item.json.client_name }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -9024,
+        1536
+      ],
+      "id": "172397da-382c-4518-b0c7-125e9f646b68",
+      "name": "Filter only parent folder"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "eb6f56eb-7bb5-4d8c-aba7-cecbfb2d9de8",
+              "name": "job_number",
+              "value": "={{ $('When Executed by Another Workflow').item.json.brief_data[0].job_number }}",
+              "type": "string"
+            },
+            {
+              "id": "38b2d7b7-da5f-4bb2-b286-bc519e4d3920",
+              "name": "=job_desc",
+              "value": "={{ $('When Executed by Another Workflow').item.json.brief_data[0].project_description }}",
+              "type": "string"
+            },
+            {
+              "id": "42fc6c6b-821b-464f-9ff6-661931647b42",
+              "name": "client_parent_folder_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -8832,
+        1632
+      ],
+      "id": "b14eb999-de30-44a0-8f78-0eb6acd4e0e2",
+      "name": "Job Number"
+    },
+    {
+      "parameters": {
+        "content": "## test folder condition:\n\ntest_automates {{ $('client name').item.json.client_name }}",
+        "height": 336
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -9344,
+        1200
+      ],
+      "typeVersion": 1,
+      "id": "10c13a6b-d5fd-4981-bf7e-85a4de7af37c",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "27a6bcad-6004-4ebe-b23f-324777fa4ee3",
+              "name": "New_Job_folder_ID",
+              "value": "={{ $node['new_job_folder_id'].json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "658c61d8-054e-4f6b-aadf-2306eee255da",
+              "name": "Scope_of_Work_ID",
+              "value": "={{ $node['Limit1'].json.documentId }}",
+              "type": "string"
+            },
+            {
+              "id": "f7f91e3f-b5c8-42a9-bf29-e1866eb0de76",
+              "name": "brief_data",
+              "value": "={{ $node['When Executed by Another Workflow'].json.brief_data }}",
+              "type": "array"
+            },
+            {
+              "id": "ae1a94c1-b0f1-4aa2-8b79-163a6df8fd1e",
+              "name": "estimate_data",
+              "value": "={{ $node['When Executed by Another Workflow'].json.estimate_line_items }}",
+              "type": "array"
+            },
+            {
+              "id": "2c39c33e-b5d3-4f14-8f7a-953c0187a9a1",
+              "name": "host_email",
+              "value": "={{ $node['When Executed by Another Workflow'].json.host_email }}",
+              "type": "string"
+            },
+            {
+              "id": "ea83211a-4005-40fc-8194-a197bba9c1b4",
+              "name": "production_folder_ID",
+              "value": "={{ $node['04 TIMELINES'].json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "710891b2-6ee6-41f9-baba-add4f7441222",
+              "name": "job_type",
+              "value": "={{ $node['When Executed by Another Workflow'].json.job_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4528,
+        1792
+      ],
+      "id": "119b0e9c-458a-49aa-89fa-2fd2b70974b0",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ssGyf8l3GVAmK9iQ",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ssGyf8l3GVAmK9iQ",
+          "cachedResultName": "04 Timeline Doc Generation"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -4368,
+        1792
+      ],
+      "id": "7539eadf-bc9e-4077-b453-eb604d85fb0f",
+      "name": "Call 'Timeline Doc Generation'"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-6",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-6"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=YOU ARE A SENIOR AGENCY SCOPE OF WORK (SOW) GENERATION AI.\nYou convert STRUCTURED BRIEF DATA into STRICT, RELIABLE, PRODUCTION-READY JSON.\nYou behave like a SYSTEM — not a writer.\n\n════════════════════════════════════════════\nINPUT\n════════════════════════════════════════════\n\nStructured Brief JSON:\n{{ JSON.stringify($json.brief_data) }}\n\n════════════════════════════════════════════\nABSOLUTE RULES\n════════════════════════════════════════════\n\n1. INPUT is the ONLY source of truth.\n2. DO NOT invent or hallucinate any data.\n3. If data is missing → return \"TBC\" (never null, never empty string).\n4. DO NOT skip any field defined in the schema.\n5. OUTPUT must always match the locked schema exactly.\n6. Ignore all _meta fields from the brief input.\n7. Return ONLY raw JSON. No markdown. No code fences. No explanation.\n8. If any section fails validation → rebuild that section before returning.\n\n════════════════════════════════════════════\nEXTRACTION MODE (Strict Mapping)\n════════════════════════════════════════════\nUsed for: details, timings, budget, team_roles, references\nRule: Extract from input ONLY. If not found → \"TBC\". Never invent.\n\n════════════════════════════════════════════\nGENERATION MODE (Controlled Expansion)\n════════════════════════════════════════════\nUsed for: background, task, deliverables, mandatories,\n          proposition, approval_process, schedule, success_criteria\nRule: Use input as context. Expand clearly. DO NOT hallucinate.\n\n════════════════════════════════════════════\n1. DETAILS — Strict Mapping\n════════════════════════════════════════════\n\nSource fields:\n  - client_name       → brief.client_name\n  - job_number        → brief.job_number\n  - description       → brief.project_description\n                        Summarise to exactly 4–5 words (e.g. \"Co-ed brand campaign launch\")\n  - allocated_hours   → brief.allocated_hours if exists, else \"TBC\"\n  - account_lead      → brief.account_manager_id\n                        Convert slug to Title Case (e.g. \"rick-rupping\" → \"Rick Rupping\")\n                        If array → join with \"/\" (e.g. \"John / Peter\")\n\nOutput:\n{\n  \"client_name\": \"...\",\n  \"job_number\": \"...\",\n  \"description\": \"4 to 5 words only\",\n  \"allocated_hours\": \"... or TBC\",\n  \"account_lead\": \"... or TBC\"\n}\n\n════════════════════════════════════════════\n2. TIMINGS — Smart Mapping\n════════════════════════════════════════════\nSource: brief.timeline_overview[]\n\nEach timeline item contains:\n- phase\n- date\n- description\n\nYour task is to intelligently map the available timeline entries into the following output fields.\n\nPriority 1: — Exact Keyword Matching\n\nSearch BOTH \"phase\" and \"description\" (case-insensitive).\n\nMatch using the following keywords:\n\nclient_brief_received\n→ client brief\n→ brief received\n→ briefing\n→ briefing session\n→ kickoff\n→ project kickoff\n\ndesign_brief_date\n→ design brief\n→ creative brief\n→ agency brief\n→ design kickoff\n\ninternal_review\n→ internal review\n→ internal approval\n→ creative review\n→ internal check\n\nclient_review\n→ client review\n→ client approval\n→ client feedback\n→ concepts due\n→ concept presentation\n→ concept submission\n\nmaterial_deadline\n→ campaign live\n→ live date\n→ launch\n→ go live\n→ final delivery\n→ project deadline\n→ artwork deadline\n→ assets due\n→ material deadline\n→ production deadline\n\nPriority 2: — Intelligent Inference\n\nIf an exact keyword match is not found:\n\n1. If a timeline entry clearly represents the FINAL campaign/project completion date\n   (for example: campaign live, launch, go live, final delivery),\n   map that date to:\n\n   material_deadline\n\n2. If a timeline entry clearly represents a briefing or kickoff,\n   map that date to:\n\n   client_brief_received\n\n3. If a timeline entry clearly represents concept presentation,\n   concept submission, or concept review by the client,\n   map that date to:\n\n   client_review\n\n4. If a timeline entry clearly represents an internal creative review,\n   map that date to:\n\n   internal_review\n\n5. If a timeline entry clearly represents a design or creative brief,\n   map that date to:\n\n   design_brief_date\n\nPriority 3: — Missing Values\n\nIf a field cannot be confidently identified from the timeline,\nreturn:\n\n\"TBC\"\n\nNever guess dates.\n\nNever invent milestones.\n\nNever copy one date into multiple fields unless the brief explicitly states those milestones occur on the same date.\n\nOutput:\n\n{\n  \"client_brief_received\": \"...\",\n  \"design_brief_date\": \"...\",\n  \"internal_review\": \"...\",\n  \"client_review\": \"...\",\n  \"material_deadline\": \"...\"\n}\n\n════════════════════════════════════════════\n3. BACKGROUND — Generation\n════════════════════════════════════════════\n\nSource: brief.project_description, brief.requirements (for audience hints)\n\nRules:\n  - 2–3 sentences maximum\n  - Professional tone, no marketing fluff\n  - Include target audience if present in brief\n  - Do not repeat the task or deliverables\n\n════════════════════════════════════════════\n4. TASK — Structured Generation\n════════════════════════════════════════════\n\nSource: brief.deliverables, brief.requirements, brief.project_description\n\nOutput:\n{\n  \"main\": \"One clear objective sentence summarising the campaign goal\",\n  \"goals\": [\n    \"expanded key goals derived from tasks goals\"\n  ]\n}\n\n════════════════════════════════════════════\n5. DELIVERABLES — Generation with Strict Preservation\n════════════════════════════════════════════\n\nSource: brief.deliverables[]\n\nSTRUCTURE EXPLANATION:\n  - Each brief.deliverables[] entry has:\n      - A top-level \"deliverable\" label (the creative output type, e.g. \"Copy/creative concepts for client review\")\n      - A \"specs\" array — which is a list of PLATFORM/CHANNEL CATEGORIES\n        (e.g. Google PMax Static, Meta Statics, Display GIFs)\n      - Each category has its own items[] — the sizes, formats, constraints\n\nRULES:\n  - \"deliverable\" appears ONCE per brief.deliverables[] entry — it is the headline output\n  - \"specs\" is an array of CATEGORIES — not individual spec lines\n  - Each category contains ALL its size/format items as an array\n  - Preserve ALL categories exactly — DO NOT merge, rename, or drop any\n  - Preserve ALL size/format items within each category\n  - Expand each item to include: size in px, aspect ratio label, copy rules, \n    scenario count, constraints (e.g. \"CTA must be visible on every loop\")\n\nOUTPUT FORMAT:\n[\n  {\n    \"deliverable\": \"top-level creative output label from brief — appears once\",\n    \"specs\": [\n      {\n        \"category\": \"platform or channel name e.g. Google PMax Static\",\n        \"scenarios\": \"e.g. 5 scenarios or null if not stated\",\n        \"copy_rule\": \"e.g. no copy needed image only / include exclude copy / or null\",\n        \"items\": [\n          {\n            \"size\": \"1200 x 628px\",\n            \"label\": \"Landscape 4 x 1\",\n            \"notes\": \"any extra constraint for this size or null\"\n          }\n        ]\n      }\n    ]\n  }\n]\n\n════════════════════════════════════════════\n6. PROPOSITION — Mapping then Generation\n════════════════════════════════════════════\n\nSource: brief.proposition\n\n  - If exists → map exactly as written\n  - If missing → generate 1 short line from project_description only\n  - Do not merge with other brief fields\n  - If genuinely unclear → \"TBC\"\n\n════════════════════════════════════════════\n7. MANDATORIES — Generation from Requirements\n════════════════════════════════════════════\n\nSource: brief.requirements[]\n\nRules:\n  - Convert each requirement into one clean instruction sentence\n  - Keep original meaning intact — do not merge or summarise multiple into one\n  - Count of mandatories must equal count of requirements in brief\n  - You can also increase the no. of mandatories uisng tasks & requirment if they are less than 8 or 10. \n  - If no requirements exist → \"TBC\"\n\nOutput:\n[\n  \"Mandatory instruction 1\",\n  \"Mandatory instruction 2\"\n]\n\n════════════════════════════════════════════\n8. BUDGET — Strict Mapping\n════════════════════════════════════════════\n\nSource: brief.budget_range\n\nOutput format:\n{\n\"notes\": \"...\"\n}\n\nRULES:\n\n* Extract budget information strictly from brief.budget_range only.\n* DO NOT invent any budget values.\n* If any budget information exists(Only in Numbers Value) (media and/or production) → generate one short-concise note mentioning the available budget detail.\n* DO NOT MENTION budget types such as \"media\" or \"production\" in the note (MUST).\n* If partial budget exists → mention only the available values.\n* If currency exists → include it in the note.\n* If min/max values exist → include them clearly in the note.\n* If entire budget_range is missing or empty → return:\n\n{\n\"notes\": \"Not Available. Budget Need to be confirmed\"\n}\n\n════════════════════════════════════════════\n9. REFERENCES — Mapping\n════════════════════════════════════════════\n\nSource: brief.references[] if present\nEach item has: heading, description\n\nOutput:\n[\n  {\n    \"heading\": \"exact text from brief\",\n    \"description\": \"exact text from brief\"\n  }\n]\n\nIf brief.references does not exist or is empty → \"TBC\"\n\n════════════════════════════════════════════\nFINAL OUTPUT SCHEMA (LOCKED)\n════════════════════════════════════════════\n\n{\n  \"details\": {\n    \"client_name\": \"...\",\n    \"job_number\": \"...\",\n    \"description\": \"...\",\n    \"allocated_hours\": \"...\",\n    \"account_lead\": \"...\"\n  },\n  \"timings\": {\n    \"client_brief_received\": \"...\",\n    \"design_brief_date\": \"...\",\n    \"internal_review\": \"...\",\n    \"client_review\": \"...\",\n    \"material_deadline\": \"...\"\n  },\n  \"sections\": {\n    \"background\": \"...\",\n    \"task\": {\n      \"main\": \"...\",\n      \"goals\": []\n    },\n    \"deliverables\": [],\n    \"proposition\": \"...\",\n    \"mandatories\": [],\n    \"budget\": {},\n    \"references\": []\n  }\n}\n\n════════════════════════════════════════════\nFINAL VALIDATION CHECKLIST\n════════════════════════════════════════════\n\nBefore returning output, verify:\n  ✔ No empty strings — use \"TBC\" if missing\n  ✔ No null values anywhere\n  ✔ All arrays are valid and non-empty\n  ✔ No hallucinated values in strict mapping sections\n  ✔ Deliverables count matches brief exactly\n  ✔ Mandatories count matches requirements count exactly\n  ✔ JSON is valid and complete\n  ✔ Schema structure is respected exactly\n  ✔ No markdown, no code fences, no explanation text\n\nIF ANY CHECK FAILS → REBUILD THAT SECTION BEFORE RETURNING."
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 8192
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        -5776,
+        1792
+      ],
+      "id": "119d24ed-abb3-4441-a94c-0f87112ce187",
+      "name": "Scope of Work Generator1",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "anthropicApi": {
+          "id": "Jg1V1gnBT6Yoq4CM",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $('create SOW in core').item.json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "={{ $json.search }}",
+              "replaceText": "={{ $json.replace }}",
+              "matchCase": true
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        -4848,
+        1792
+      ],
+      "id": "604eceea-8ff9-4ac9-9404-cf3a2a1ada96",
+      "name": "Insert SOW Content",
+      "retryOnFail": true,
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "aoFPKXfJzmqxTCHK",
+          "name": "CoreAgency GoogleDocs Connection"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -4688,
+        1792
+      ],
+      "id": "169cbb5a-7863-4494-8e16-fe53f30da6fc",
+      "name": "Limit1"
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $('client name').item.json.client_name }}",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "193LVS12us4oy_nGAuiLxtiwuqPUkDiGT",
+          "mode": "list",
+          "cachedResultName": "AutoMATES TESTING CLIENTS",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/193LVS12us4oy_nGAuiLxtiwuqPUkDiGT"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -9024,
+        1712
+      ],
+      "id": "98bd4109-748b-47b7-9e3a-dbba115583dc",
+      "name": "create client parent folder",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4bf259ac-d9fd-407c-bb99-60ab1e7ae02e",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -9216,
+        1632
+      ],
+      "id": "bd16d3c8-53b7-493b-8572-6648dccfb072",
+      "name": "client Exist or NOT ?"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "=name contains '{{ $json.client_name }}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false ",
+        "returnAll": true,
+        "filter": {
+          "driveId": {
+            "__rl": true,
+            "value": "My Drive",
+            "mode": "list",
+            "cachedResultName": "My Drive",
+            "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+          },
+          "folderId": {
+            "mode": "list",
+            "value": "root",
+            "cachedResultName": "/ (Root folder)"
+          },
+          "whatToSearch": "folders"
+        },
+        "options": {
+          "fields": [
+            "id",
+            "name",
+            "mimeType"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -9280,
+        1344
+      ],
+      "id": "64394fe9-dcad-4562-a17a-b1f98cadcc97",
+      "name": "Search client parent folder (futuretech)1",
+      "executeOnce": false,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "kRO08VsmP81eTjg8",
+          "name": "futuretech"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "=name = '{{ $json.client_name }}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false ",
+        "returnAll": true,
+        "filter": {
+          "driveId": {
+            "__rl": true,
+            "value": "0AIooQ6BEfRXVUk9PVA",
+            "mode": "list",
+            "cachedResultName": "Clients",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+          },
+          "folderId": {
+            "__rl": true,
+            "value": "193LVS12us4oy_nGAuiLxtiwuqPUkDiGT",
+            "mode": "list",
+            "cachedResultName": "AutoMATES TESTING CLIENTS",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/193LVS12us4oy_nGAuiLxtiwuqPUkDiGT"
+          },
+          "whatToSearch": "folders"
+        },
+        "options": {
+          "fields": [
+            "id",
+            "name",
+            "mimeType"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -9392,
+        1632
+      ],
+      "id": "ea5d7a9a-587b-44ea-b708-a443dd2763c2",
+      "name": "Search client parent folder - CORE",
+      "executeOnce": false,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "=1PLtPPoNW5dMVrCiVYXyWnBYwqI0re2_V4PhEemfZpQg",
+          "mode": "id"
+        },
+        "name": "={{ $('Code in JavaScript1').item.json.details.job_number }}_Task_Brief",
+        "sameFolder": false,
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $node['02 BRIEFS'].json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -5248,
+        1792
+      ],
+      "id": "a88d4763-ab69-421e-90e8-52f76bfe7ec0",
+      "name": "create SOW in core",
+      "notesInFlow": true,
+      "retryOnFail": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      },
+      "notes": "copy template"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5b512c10-f162-4175-a852-e6a230489615",
+              "name": "brief_data",
+              "value": "={{ $node['When Executed by Another Workflow'].json.brief_data }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5952,
+        1792
+      ],
+      "id": "5a9174f3-0ab1-49a9-8ab7-6970f3c83d5b",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "00 JOB ADMIN",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('new_job_folder_id').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7632,
+        1472
+      ],
+      "id": "ade21756-3ad8-4cc3-8a98-65dabaf3204b",
+      "name": "00 JOB ADMIN",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "03 STRATEGY",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('new_job_folder_id').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7600,
+        2064
+      ],
+      "id": "4ecd10d3-466d-47f0-91f1-92cf2c9b021c",
+      "name": "03 STRATEGY",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "04 PRODUCTION",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('new_job_folder_id').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7600,
+        2240
+      ],
+      "id": "4c02f815-a799-441d-9dc6-6686c593279a",
+      "name": "04 PRODUCTION",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "02 BRIEFS",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('new_job_folder_id').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7616,
+        1888
+      ],
+      "id": "926dab76-5962-4f08-a030-f4f5eda56ed8",
+      "name": "02 BRIEFS",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "07 IMAGES",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('new_job_folder_id').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7600,
+        2800
+      ],
+      "id": "57f78411-fb1f-409d-abe7-174d2081e69a",
+      "name": "07 IMAGES",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "08 PRESENTATION",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('new_job_folder_id').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7600,
+        2992
+      ],
+      "id": "9178a398-3e24-44c3-945f-3d6bcb34db54",
+      "name": "08 PRESENTATION",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "09 PDFS",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('new_job_folder_id').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7600,
+        3184
+      ],
+      "id": "2dd0ab11-c58c-49d2-bcb8-4daee845c90f",
+      "name": "09 PDFS",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "10 FINISHED ART",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('new_job_folder_id').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7600,
+        3424
+      ],
+      "id": "81513ec2-4ffb-43e9-9ac0-495777b7b8b9",
+      "name": "10 FINISHED ART",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $('Code in JavaScript1').first().json;\n\n\n// ─────────────────────────────────────\n// DATE FORMATTER — Australian DD/MM/YY\n// ─────────────────────────────────────\n\nfunction toAusDate(value) {\n  if (!value || value === 'TBC') return 'TBC';\n\n  const date = new Date(value);\n\n  // If it parsed as a valid date\n  if (!isNaN(date.getTime())) {\n    const dd = String(date.getUTCDate()).padStart(2, '0');\n    const mm = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const yy = String(date.getUTCFullYear()).slice(-2);\n    return `${dd}/${mm}/${yy}`;\n  }\n\n  // If partial like \"August\" or \"August 2024\" — return as-is\n  return value;\n}\n\n// ─────────────────────────────────────\n// HELPERS\n// ─────────────────────────────────────\n\nfunction formatDeliverableHeadlines(deliverables) {\n  if (!Array.isArray(deliverables) || deliverables.length === 0) {\n    return 'TBC';\n  }\n\n  return deliverables\n    .map(entry => entry.deliverable || 'TBC')\n    .join('\\n');\n}\n\nfunction formatSpecs(deliverables) {\n\n  if (!Array.isArray(deliverables) || deliverables.length === 0) {\n    return 'TBC';\n  }\n\n  return deliverables.map(entry => {\n\n    if (!Array.isArray(entry.specs) || entry.specs.length === 0) {\n      return 'TBC';\n    }\n\n    return entry.specs.map(spec => {\n\n      const categoryLine = [\n        spec.category,\n        spec.scenarios ? `${spec.scenarios}` : null,\n        spec.copy_rule ? `(${spec.copy_rule})` : null\n      ]\n      .filter(Boolean)\n      .join(' — ');\n\n      const items = Array.isArray(spec.items)\n        ? spec.items.map(item => {\n\n            const notePart =\n              item.notes &&\n              item.notes !== item.label\n                ? ` — ${item.notes}`\n                : '';\n\n            return `    • ${item.size}  ${item.label}${notePart}`;\n\n          }).join('\\n')\n        : '';\n\n      return `${categoryLine}\\n${items}`;\n\n    }).join('\\n\\n');\n\n  }).join('\\n\\n');\n}\n\nfunction formatReferences(references) {\n\n  if (!Array.isArray(references) || references.length === 0) {\n    return 'TBC';\n  }\n\n  return references\n    .map(r => `• ${r.heading}\\n  ${r.description}`)\n    .join('\\n\\n');\n}\n\nfunction formatBudget(budget) {\n\n  if (\n    !budget ||\n    typeof budget !== 'object'\n  ) {\n    return 'Not Available. Budget Need to be confirmed';\n  }\n\n  // New simplified structure\n  if (budget.notes) {\n    return budget.notes;\n  }\n\n  // Backward compatibility\n  const media = budget.media || {};\n  const production = budget.production || {};\n\n  const sections = [];\n\n  if (\n    media.min ||\n    media.max ||\n    media.currency\n  ) {\n    sections.push(\n      `Media Budget: ${val(media.currency)} ${val(media.min)} - ${val(media.max)}`\n    );\n  }\n\n  if (\n    production.min ||\n    production.max ||\n    production.currency\n  ) {\n    sections.push(\n      `Production Budget: ${val(production.currency)} ${val(production.min)} - ${val(production.max)}`\n    );\n  }\n\n  if (budget.notes) {\n    sections.push(budget.notes);\n  }\n\n  return sections.length\n    ? sections.join('\\n')\n    : 'Not Available. Budget Need to be confirmed';\n}\n\nfunction bulletList(arr) {\n\n  if (!Array.isArray(arr) || arr.length === 0) {\n    return 'TBC';\n  }\n\n  return arr\n    .map(i => `• ${i}`)\n    .join('\\n');\n}\n\nfunction val(value) {\n\n  return (\n    value !== undefined &&\n    value !== null &&\n    value !== ''\n  )\n    ? value\n    : 'TBC';\n}\n\n// ─────────────────────────────────────\n// REPLACEMENTS\n// ─────────────────────────────────────\n\nconst replacements = [\n\n  // ── DETAILS ──\n  [\"{{client_name}}\",     val(data.details?.client_name)],\n  [\"{{job_number}}\",      val(data.details?.job_number)],\n  [\"{{description}}\",     val(data.details?.description)],\n  [\"{{allocated_hours}}\", val(data.details?.allocated_hours)],\n  [\"{{account_lead}}\",    val(data.details?.account_lead)],\n\n  // ── TIMINGS ──\n  [\"{{client_brief_received}}\",\n    toAusDate(data.timings?.client_brief_received)\n  ],\n\n  [\"{{brief_date}}\",\n    toAusDate(data.timings?.design_brief_date)\n  ],\n\n  [\"{{internal_review}}\",\n    toAusDate(data.timings?.internal_review)\n  ],\n\n  [\"{{client_review}}\",\n    toAusDate(data.timings?.client_review)\n  ],\n\n  [\"{{material_deadline}}\",\n    toAusDate(data.timings?.material_deadline)\n  ],\n\n  // ── SECTIONS ──\n  [\"{{background}}\",\n    val(data.sections?.background)\n  ],\n\n  [\"{{proposition}}\",\n    val(data.sections?.proposition)\n  ],\n\n  [\"{{task}}\",\n    data.sections?.task\n      ? val(data.sections.task.main) +\n        '\\n\\n' +\n        bulletList(data.sections.task.goals)\n      : 'TBC'\n  ],\n\n  [\"{{deliverables}}\",\n    formatDeliverableHeadlines(data.sections?.deliverables)\n  ],\n\n  [\"{{specs}}\",\n    formatSpecs(data.sections?.deliverables)\n  ],\n\n  [\"{{mandatories}}\",\n    bulletList(data.sections?.mandatories)\n  ],\n\n  [\"{{budget}}\",\n    formatBudget(data.sections?.budget)\n  ],\n\n  [\"{{references}}\",\n    formatReferences(data.sections?.references)\n  ]\n\n];\n\n// ─────────────────────────────────────\n// RETURN\n// ─────────────────────────────────────\n\nreturn replacements.map(([search, replace]) => ({\n  json: {\n    search,\n    replace\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5056,
+        1792
+      ],
+      "id": "de1d9717-2dfa-4fad-a74c-1061d6dbfa85",
+      "name": "search & replace"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9730730b-400c-4662-8b0f-404cf332b8a3",
+              "leftValue": "={{ $json.job_number }}",
+              "rightValue": "QBE",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -8672,
+        1632
+      ],
+      "id": "3de994ec-b174-4c94-9b3d-350ade5c2795",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $('Job Number').item.json.job_number }}-{{ $('Job Number').item.json.job_desc }}",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Job Number').item.json.client_parent_folder_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -8464,
+        1744
+      ],
+      "id": "69a76da3-4e52-480a-8fd0-a41d68d8b7d8",
+      "name": "new job folder",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $('If').item.json.job_number }}-{{ $json.output[0].content[0].text.team_code }}-{{ $('If').item.json.job_desc }}",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Job Number').item.json.client_parent_folder_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -8128,
+        1536
+      ],
+      "id": "b0975464-01bb-4361-9efc-f1efbd23d23b",
+      "name": "new job folder1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a31015fa-2229-4e98-a3a5-702b0f69b50f",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -7920,
+        1744
+      ],
+      "id": "f639fd83-a80f-4da4-a93e-266b76d2bf95",
+      "name": "new_job_folder_id"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are an expert at classifying QBE jobs into the correct business team.\n\n# Context\n\nQBE is a major client of CORE.\n\nQBE jobs may come under one of these client codes:\n\n* QBEA\n* QBEI\n* QBEP\n\nThese client codes DO NOT determine the team.\n\nYour task is to analyze the entire brief and determine which QBE team owns the work.\n\n# Team Definitions\n\n## CL (Consumer Lines)\n\nConsumer-facing insurance products and campaigns.\n\nTypical topics:\n\n* Home insurance\n* Car insurance\n* Travel insurance\n* Personal insurance\n* Landlord insurance\n* Consumer advertising\n* Direct-to-consumer campaigns\n* Brand campaigns targeting individual customers\n\nKeywords may include:\n\n* Home\n* House\n* Property\n* Car\n* Vehicle\n* Travel\n* Family\n* Personal insurance\n* Consumer campaign\n* Customer acquisition\n* Awareness campaign\n\nIf the campaign is promoting insurance products to individual consumers, classify as CL.\n\n---\n\n## BL (Business Lines)\n\nBusiness and commercial insurance products.\n\nTypical topics:\n\n* Business insurance\n* SME insurance\n* Commercial insurance\n* Professional insurance\n* Corporate insurance\n* Business customers\n* Brokers\n* Business owners\n* Enterprise clients\n* Commercial property\n\nKeywords may include:\n\n* Business\n* SME\n* Commercial\n* Corporate\n* Broker\n* Enterprise\n* Professional services\n* Business owner\n\nIf the campaign targets businesses, brokers, or commercial customers, classify as BL.\n\n---\n\n## SP (Sponsorship)\n\nQBE sponsorship programs and sponsored partnerships.\n\nTypical topics:\n\n* Sponsorship announcements\n* Sponsored sporting events\n* Sponsored teams\n* Sponsored organizations\n* Brand partnership activations\n* Sponsorship assets\n* Sponsorship content\n\nKeywords may include:\n\n* Sponsor\n* Sponsorship\n* Partner\n* Partnership\n* Sydney Swans\n* Team partnership\n* Naming rights\n* Official partner\n\nIf QBE is sponsoring, partnering with, or activating around a sponsored property, classify as SP.\n\n---\n\n## EV (Events)\n\nEvents hosted, attended, presented, or supported by QBE.\n\nTypical topics:\n\n* Conferences\n* Exhibitions\n* Trade shows\n* Seminars\n* Roadshows\n* Presentations\n* Networking events\n* Internal events\n* Client events\n\nKeywords may include:\n\n* Event\n* Conference\n* Expo\n* Trade show\n* Presentation\n* Roadshow\n* Forum\n* Seminar\n* Exhibition\n\nIf the work is primarily related to an event, classify as EV.\n\n# Classification Rules\n\n1. Read the entire brief.\n2. Determine the primary business objective.\n3. Classify into exactly one team:\n\n   * CL\n   * BL\n   * SP\n   * EV\n4. Do not use client code (QBEA, QBEI, QBEP) as a deciding factor.\n5. If sponsorship is clearly mentioned, choose SP.\n6. If an event is the primary purpose, choose EV.\n7. If insurance is being marketed to consumers, choose CL.\n8. If insurance is being marketed to businesses, brokers, or commercial customers, choose BL.\n\n# Output Requirements\n\nReturn ONLY valid JSON.\n\nSchema:\n\n{\n\"team_code\": \"CL|BL|SP|EV\",\n\"team_name\": \"Consumer Lines|Business Lines|Sponsorship|Events\",\n\"confidence\": 0-100,\n\"reason\": \"Short explanation for why this classification was chosen\",\n\"evidence\": [\n\"Keyword or phrase found in brief\",\n\"Keyword or phrase found in brief\"\n]\n}\n\n# Team Name Mapping\n\nCL = Consumer Lines\nBL = Business Lines\nSP = Sponsorship\nEV = Events\n\nDo not return markdown.\nDo not return explanations outside the JSON.\nReturn exactly one team classification.\n\n# Brief Data: \n{{ JSON.stringify($('When Executed by Another Workflow').item.json.brief_data)}}\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_schema",
+              "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"team_code\": {\n      \"type\": \"string\",\n      \"enum\": [\"CL\", \"BL\", \"SP\", \"EV\"]\n    },\n    \"team_name\": {\n      \"type\": \"string\"\n    },\n    \"confidence\": {\n      \"type\": \"number\"\n    },\n    \"reason\": {\n      \"type\": \"string\"\n    },\n    \"evidence\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  },\n  \"required\": [\n    \"team_code\",\n    \"team_name\",\n    \"confidence\",\n    \"reason\",\n    \"evidence\"\n  ],\n  \"additionalProperties\": false\n}"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        -8464,
+        1536
+      ],
+      "id": "57c1ed16-b2ac-420e-a64a-23dc09f1f175",
+      "name": "QBE-Team Code",
+      "credentials": {
+        "openAiApi": {
+          "id": "v1DQHKLXrdQIocpO",
+          "name": "OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ======================================\n// Get Raw AI Response\n// ======================================\n\nconst input = $input.first().json;\n\nlet rawText =\n  input.content?.[0]?.text ||\n  input.text ||\n  '';\n\nif (!rawText) {\n  throw new Error(\n    'No text content found from AI response'\n  );\n}\n\n// ======================================\n// Remove Markdown Wrappers\n// ======================================\n\nrawText = rawText\n  .replace(/```json\\s*/gi, '')\n  .replace(/```\\s*/g, '')\n  .trim();\n\n// ======================================\n// Extract JSON Only\n// (handles extra text before/after JSON)\n// ======================================\n\nconst firstBrace = rawText.indexOf('{');\nconst lastBrace = rawText.lastIndexOf('}');\n\nif (\n  firstBrace !== -1 &&\n  lastBrace !== -1 &&\n  lastBrace > firstBrace\n) {\n  rawText =\n    rawText.substring(\n      firstBrace,\n      lastBrace + 1\n    );\n}\n\n// ======================================\n// Fix Truncated JSON Safely\n// ======================================\n\nconst fixJson = (text) => {\n\n  const openBraces =\n    (text.match(/{/g) || []).length;\n\n  const closeBraces =\n    (text.match(/}/g) || []).length;\n\n  const openBrackets =\n    (text.match(/\\[/g) || []).length;\n\n  const closeBrackets =\n    (text.match(/\\]/g) || []).length;\n\n  const missingBraces =\n    Math.max(\n      0,\n      openBraces - closeBraces\n    );\n\n  const missingBrackets =\n    Math.max(\n      0,\n      openBrackets - closeBrackets\n    );\n\n  return (\n    text +\n    '}'.repeat(missingBraces) +\n    ']'.repeat(missingBrackets)\n  );\n};\n\nrawText = fixJson(rawText);\n\n// ======================================\n// Parse JSON\n// ======================================\n\ntry {\n\n  const parsed =\n    JSON.parse(rawText);\n\n  // ======================================\n// Always set client_brief_received\n// to today's date (YYYY-MM-DD)\n// ======================================\n\n   const today = new Date().toLocaleDateString('en-CA');\n\n  if (!parsed.timings) {\n     parsed.timings = {};\n  }\n\n  parsed.timings.client_brief_received = today;\n\n  return [{\n    json: parsed\n  }];\n\n} catch (err) {\n\n  return [{\n    json: {\n      error: true,\n      message: err.message,\n      raw_output: rawText\n    }\n  }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5440,
+        1792
+      ],
+      "id": "10b7684e-aa95-46e9-a0fa-f82a7283c620",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "=name = '{{ $json.client_name }}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false ",
+        "returnAll": true,
+        "filter": {
+          "driveId": {
+            "__rl": true,
+            "value": "0AIooQ6BEfRXVUk9PVA",
+            "mode": "list",
+            "cachedResultName": "Clients",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+          },
+          "folderId": {
+            "__rl": true,
+            "value": "193LVS12us4oy_nGAuiLxtiwuqPUkDiGT",
+            "mode": "list",
+            "cachedResultName": "AutoMATES TESTING CLIENTS",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/193LVS12us4oy_nGAuiLxtiwuqPUkDiGT"
+          },
+          "whatToSearch": "folders"
+        },
+        "options": {
+          "fields": [
+            "id",
+            "name",
+            "mimeType"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -8096,
+        1264
+      ],
+      "id": "cb112311-074f-444f-982e-2afafef7ad34",
+      "name": "Search client parent folder - CORE2",
+      "executeOnce": false,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "01 APPROVALS",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('00 JOB ADMIN').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7312,
+        1472
+      ],
+      "id": "166d7b99-297b-4468-8d3e-8b6fed88859c",
+      "name": "01 APPROVALS",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "02 CONTACTS",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('00 JOB ADMIN').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7168,
+        1472
+      ],
+      "id": "fa41c9d9-3db7-43ac-ab55-a4ba70a46458",
+      "name": "02 CONTACTS",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "03 DELIEVRY CONFIRMATIONS",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('00 JOB ADMIN').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7024,
+        1472
+      ],
+      "id": "9528980f-f447-49b8-88a3-cbb671353934",
+      "name": "03 DELIEVRY CONFIRMATIONS",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "04 TIMELINES",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('00 JOB ADMIN').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6880,
+        1472
+      ],
+      "id": "1f8b4c92-dfdb-47fe-94c4-f56d1cf9bcac",
+      "name": "04 TIMELINES",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "05 PR",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('00 JOB ADMIN').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6688,
+        1472
+      ],
+      "id": "e1f0d4c2-94a9-4f7c-a9d8-5d84522949b9",
+      "name": "05 PR",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "00 JOB ADMIN",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('00 JOB ADMIN').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6496,
+        1472
+      ],
+      "id": "bdd4624f-9f53-432d-b659-141b82ea9ca3",
+      "name": "06 CLEARADS",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "02 RESEARCH",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('03 STRATEGY').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7104,
+        2064
+      ],
+      "id": "f22388c4-0926-494f-ab72-92ac66ec6ddd",
+      "name": "02 RESEARCH",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "01 CLIENT BRIEF",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('05 SUPPLIED').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7280,
+        2432
+      ],
+      "id": "f289c710-f244-43ac-915c-dd29f3121991",
+      "name": "01 CLIENT BRIEF",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "02 CLIENT FEEDBACK",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('05 SUPPLIED').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7104,
+        2432
+      ],
+      "id": "e6513863-f6db-485a-bb52-8b48a14de733",
+      "name": "02 CLIENT FEEDBACK",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "03 IMAGES",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('05 SUPPLIED').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6960,
+        2432
+      ],
+      "id": "3aed6ea4-5612-4429-bb43-81444d019de2",
+      "name": "03 IMAGES",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "04 MEDIA",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('05 SUPPLIED').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6832,
+        2432
+      ],
+      "id": "2c8e1637-02d8-4c70-ae95-18c7d53b2425",
+      "name": "04 MEDIA",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "05 REFERENCE",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('05 SUPPLIED').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6688,
+        2432
+      ],
+      "id": "ae935838-6190-4b76-9a06-8f95737748ad",
+      "name": "05 REFERENCE",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "06 SPECS",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('05 SUPPLIED').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6528,
+        2432
+      ],
+      "id": "811de787-de87-4804-8a03-752600be9e64",
+      "name": "06 SPECS",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "07 ASSETS",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('05 SUPPLIED').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6384,
+        2432
+      ],
+      "id": "cb52ee4c-9e57-41cf-a6c7-c066d85236e2",
+      "name": "07 ASSETS",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "01 MOCK UP SCAMPS",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('06 CREATIVE').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7296,
+        2608
+      ],
+      "id": "7153a337-be15-49e2-846a-0900dc9f0726",
+      "name": "01 MOCK UP SCAMPS",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "02 COPY",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('06 CREATIVE').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7136,
+        2608
+      ],
+      "id": "09195033-6bef-4fce-9567-c41353948461",
+      "name": "02 COPY",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "03 REFERENCE",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('06 CREATIVE').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6976,
+        2608
+      ],
+      "id": "5ae234fc-0f30-4841-b3e9-5474e300bf0f",
+      "name": "03 REFERENCE",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "04 ARTWORK",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('06 CREATIVE').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6816,
+        2608
+      ],
+      "id": "c7935683-5ae8-4e0d-a0c0-8b2d81911f51",
+      "name": "04 ARTWORK",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "05 TVC",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('06 CREATIVE').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6656,
+        2608
+      ],
+      "id": "dd45f91c-dfba-41e9-b7ac-d1c55df4e01b",
+      "name": "05 TVC",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "06 CREATIVE TEMPLATES",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('06 CREATIVE').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6496,
+        2608
+      ],
+      "id": "da9ba35a-9c42-4cfb-b4ae-43066c7edf6f",
+      "name": "06 CREATIVE TEMPLATES",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "07 DIGITAL STAGING",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('06 CREATIVE').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6336,
+        2608
+      ],
+      "id": "6c4fb6bc-fc36-45b7-8ca3-3e2c2a1e10fc",
+      "name": "07 DIGITAL STAGING",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "01 BACKGROUNDERS",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('03 STRATEGY').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7280,
+        2064
+      ],
+      "id": "c53a274c-9e98-4fe1-a891-92c3d5616cb6",
+      "name": "01 BACKGROUNDER",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "01 LOW RES",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('07 IMAGES').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7296,
+        2800
+      ],
+      "id": "45030800-f33f-45da-bf4d-0569e5142f76",
+      "name": "01 LOW RES",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "02 HIGH RES",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('07 IMAGES').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7120,
+        2800
+      ],
+      "id": "1f3bbc80-f9c1-4ac6-8aff-8282073fc23a",
+      "name": "02 HIGH RES",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "03 PURCHASED",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('07 IMAGES').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6928,
+        2800
+      ],
+      "id": "b80bf9df-f557-4b83-9413-80f2b0caa36f",
+      "name": "03 PURCHASED",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "04 VECTA",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('07 IMAGES').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6752,
+        2800
+      ],
+      "id": "12ce3c90-566a-401a-82d7-4b8d2729c086",
+      "name": "04 VECTA",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "05 NOT PURCHASED",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('07 IMAGES').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6576,
+        2800
+      ],
+      "id": "1b5e8406-6228-4a1e-96ef-ab5721d988ba",
+      "name": "05 NOT PURCHASED",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "01 TEMPLATES",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('08 PRESENTATION').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7136,
+        2992
+      ],
+      "id": "0d635634-2498-4e1e-b264-6b4b0baf64c3",
+      "name": "01 TEMPLATES",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "_ARCHIVE",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('08 PRESENTATION').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7296,
+        2992
+      ],
+      "id": "4e6d2e73-d1fc-4c26-832f-0d9bf5bf2af6",
+      "name": "_ARCHIVE",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "_ARCHIVE",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('09 PDFS').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7296,
+        3184
+      ],
+      "id": "9867edb0-1360-4c92-ad78-aca6b1862527",
+      "name": "_ARCHIVE1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "01_23012026_ClientPresV01",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('09 PDFS').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7136,
+        3184
+      ],
+      "id": "86ae4420-7414-4126-8029-af86ed831588",
+      "name": "01_23012026_ClientPresV01",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "_ARCHIVE",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('08 PRESENTATION').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7296,
+        3424
+      ],
+      "id": "7f42392b-cb4f-405a-a8e5-f6418752b372",
+      "name": "_ARCHIVE2",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "01 TEMPLATES",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('08 PRESENTATION').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6320,
+        3424
+      ],
+      "id": "1bb852e0-79e6-448a-a945-e6e439b17d93",
+      "name": "01 TEMPLATES1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# NESTED SUB FOLDERS",
+        "height": 2240,
+        "width": 1136,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -7344,
+        1376
+      ],
+      "typeVersion": 1,
+      "id": "3534e5d2-8050-4521-8925-e7c92cb537a1",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "01 ESTIMATES",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('01 FINANCE').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7296,
+        1680
+      ],
+      "id": "fdfea966-c4fd-46e5-bf39-548e86025aee",
+      "name": "01 ESTIMATES",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "02 QUOTES",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('01 FINANCE').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7152,
+        1680
+      ],
+      "id": "42a684d5-9a08-4d56-af16-3a724eadc138",
+      "name": "02 QUOTES",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "03 PURCHASE ORDERS",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('01 FINANCE').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7008,
+        1680
+      ],
+      "id": "207a7bc5-f442-47fa-abda-5f8ad3f33ddd",
+      "name": "03 PURCHASE ORDERS",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "04 INVOICES",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('01 FINANCE').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6864,
+        1680
+      ],
+      "id": "7fda608f-37c9-4bc0-90ef-be35d4325639",
+      "name": "04 INVOICES",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "05 RECCE",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('01 FINANCE').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6720,
+        1680
+      ],
+      "id": "92d110df-c184-4180-afa8-751e9b5236ab",
+      "name": "05 RECCE",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "_ARCHIVE",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('02 BRIEFS').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7264,
+        1888
+      ],
+      "id": "51ec9805-8148-4014-ac4e-3207e7c885ae",
+      "name": "_ARCHIVE3",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "01 BRIEF TEMPLATES",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('02 BRIEFS').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7040,
+        1888
+      ],
+      "id": "95cd79c1-8aef-42e5-9937-dee4387ff6d9",
+      "name": "01 BRIEF TEMPLATES",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "02 POST PRODUCTIONS",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('04 PRODUCTION').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7088,
+        2240
+      ],
+      "id": "de308967-55cc-4581-ad1c-08bf89d859c4",
+      "name": "02 POST PRODUCTIONS",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "01 PRE PRODUCTION",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('04 PRODUCTION').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7280,
+        2240
+      ],
+      "id": "5ee6ae48-400f-4f94-b9cb-b3e9500455b5",
+      "name": "01 PRE PRODUCTION",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# SUB FOLDERS",
+        "height": 2208,
+        "width": 400,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -7744,
+        1376
+      ],
+      "typeVersion": 1,
+      "id": "2bca045f-df39-414c-b0fc-595d7d53e5a2",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "01 FINANCE",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('new_job_folder_id').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7632,
+        1680
+      ],
+      "id": "2c207d50-969a-4880-b954-7fdcd1ef450e",
+      "name": "01 FINANCE",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "05 SUPPLIED",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('new_job_folder_id').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7600,
+        2432
+      ],
+      "id": "4ddf9484-9b9c-49c3-97f0-1761d39ce378",
+      "name": "05 SUPPLIED",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "06 CREATIVE",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('new_job_folder_id').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7600,
+        2608
+      ],
+      "id": "c6ad241f-5c93-4715-938a-ee0471f3aa26",
+      "name": "06 CREATIVE",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "host_email": "milton@thecoreagency.com.au",
+          "brief_data": [
+            {
+              "job_number": "QBEA0893",
+              "client_name": "QBE AUSTRALIA PTY LTD",
+              "client_code": "QBEA",
+              "project_description": "IA Conference Trade Stand Artwork",
+              "project_type": "Collateral",
+              "proposition": "TBC",
+              "allocated_hours": "TBC",
+              "task": {
+                "main": "Design and produce 4 pieces of branded Qnect trade stand artwork for the IA Conference 'A Night at the Races' at Randwick Racecourse.",
+                "goals": [
+                  "Create branded Qnect materials linking with the 'At the Heart of it' campaign",
+                  "Accommodate the 'Goals for Good' activation (800mm width) on the rear wall",
+                  "Design flexible artwork to support counter positioning on either left or right side",
+                  "Ensure all artwork meets technical print specifications"
+                ]
+              },
+              "deliverables": {
+                "main": "4 pieces of trade stand artwork for the Qnect Platinum Booth at the IA Conference.",
+                "categories": [
+                  {
+                    "category": "Trade Stand Signage",
+                    "items": [
+                      "Platinum Booth Rear Wall: 6000mm W x 1920mm H",
+                      "Catering Counter signage: 2156mm x 1000mm",
+                      "Front Counter signage: 1656mm x 1000mm",
+                      "Side Infill for front counter: 414mm x 854mm"
+                    ]
+                  }
+                ]
+              },
+              "deadline": {
+                "raw": "Event-driven deadline - IA Conference at Randwick Racecourse (date TBC)",
+                "iso_date": null
+              },
+              "budget_range": {
+                "media": {
+                  "raw": null,
+                  "min": null,
+                  "max": null,
+                  "currency": null
+                },
+                "production": {
+                  "raw": null,
+                  "min": null,
+                  "max": null,
+                  "currency": null
+                },
+                "notes": null
+              },
+              "requirements": [
+                "No logos or text within 40mm of edges on all artwork",
+                "Rear wall artwork must accommodate 800mm space for 'Goals for Good' activation",
+                "All layers must be flattened",
+                "Rear wall supplied as High Res PDF or highest res JPG at 25% of full size at min 400 DPI",
+                "Counter signage supplied as High-Res PDF in CMYK, no crop marks or bleed",
+                "Large files to be sent via WeTransfer, Dropbox or similar",
+                "Stand positioning TBD - counter may be on left or right side",
+                "Counter signage artwork options: 100 DPI @ 100%, 200 DPI @ 50%, or 400 DPI @ 25%"
+              ],
+              "team_preferences": [],
+              "account_manager": null,
+              "timeline_overview": [
+                {
+                  "phase": "Stand Positioning Confirmation",
+                  "date": "TBC",
+                  "description": "Awaiting confirmation of front/catering counter side (left or right) which will affect final artwork layout."
+                },
+                {
+                  "phase": "Final Artwork Delivery",
+                  "date": "TBC",
+                  "description": "Event-driven deadline aligned to the IA Conference at Randwick Racecourse."
+                }
+              ],
+              "references": [
+                {
+                  "heading": "Background Context",
+                  "description": "Annual IA (Insurance Advisers) Conference themed 'A Night at the Races' held at Randwick Racecourse; QBE/Qnect has a trade stand with interactive 'Goals for Good' footy game activation."
+                },
+                {
+                  "heading": "Creative Direction",
+                  "description": "Headline to link with 'At the Heart of it'; rear wall to feature Qnect logo, heading, and CTA copy (qbe.com.au/qnect); tone professional and aligned with campaign messaging."
+                },
+                {
+                  "heading": "Additional Notes",
+                  "description": "Brief references including a specific image/element somewhere on the artwork but the reference appears incomplete; stand positioning confirmation is still pending."
+                }
+              ]
+            }
+          ],
+          "job_type": "Design",
+          "estimate_line_items": [
+            {
+              "message": "NO ESTIMATE CREATION"
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "client name": {
+      "main": [
+        [
+          {
+            "node": "Search client parent folder - CORE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "client name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter only parent folder": {
+      "main": [
+        [
+          {
+            "node": "Job Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Job Number": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Call 'Timeline Doc Generation'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scope of Work Generator1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert SOW Content": {
+      "main": [
+        [
+          {
+            "node": "Limit1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create client parent folder": {
+      "main": [
+        [
+          {
+            "node": "Job Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "client Exist or NOT ?": {
+      "main": [
+        [
+          {
+            "node": "Filter only parent folder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "create client parent folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search client parent folder - CORE": {
+      "main": [
+        [
+          {
+            "node": "client Exist or NOT ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create SOW in core": {
+      "main": [
+        [
+          {
+            "node": "search & replace",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Scope of Work Generator1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "02 BRIEFS": {
+      "main": [
+        [
+          {
+            "node": "_ARCHIVE3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "00 JOB ADMIN": {
+      "main": [
+        [
+          {
+            "node": "01 APPROVALS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "03 STRATEGY": {
+      "main": [
+        [
+          {
+            "node": "01 BACKGROUNDER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "07 IMAGES": {
+      "main": [
+        [
+          {
+            "node": "01 LOW RES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "08 PRESENTATION": {
+      "main": [
+        [
+          {
+            "node": "_ARCHIVE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "09 PDFS": {
+      "main": [
+        [
+          {
+            "node": "_ARCHIVE1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "04 PRODUCTION": {
+      "main": [
+        [
+          {
+            "node": "01 PRE PRODUCTION",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "10 FINISHED ART": {
+      "main": [
+        [
+          {
+            "node": "_ARCHIVE2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search & replace": {
+      "main": [
+        [
+          {
+            "node": "Insert SOW Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "QBE-Team Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "new job folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "new job folder": {
+      "main": [
+        [
+          {
+            "node": "new_job_folder_id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "new_job_folder_id": {
+      "main": [
+        [
+          {
+            "node": "00 JOB ADMIN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "new job folder1": {
+      "main": [
+        [
+          {
+            "node": "new_job_folder_id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QBE-Team Code": {
+      "main": [
+        [
+          {
+            "node": "new job folder1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "create SOW in core",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "01 APPROVALS": {
+      "main": [
+        [
+          {
+            "node": "02 CONTACTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "02 CONTACTS": {
+      "main": [
+        [
+          {
+            "node": "03 DELIEVRY CONFIRMATIONS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "03 DELIEVRY CONFIRMATIONS": {
+      "main": [
+        [
+          {
+            "node": "04 TIMELINES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "04 TIMELINES": {
+      "main": [
+        [
+          {
+            "node": "05 PR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "05 PR": {
+      "main": [
+        [
+          {
+            "node": "06 CLEARADS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "02 RESEARCH": {
+      "main": [
+        [
+          {
+            "node": "04 PRODUCTION",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "01 CLIENT BRIEF": {
+      "main": [
+        [
+          {
+            "node": "02 CLIENT FEEDBACK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "02 CLIENT FEEDBACK": {
+      "main": [
+        [
+          {
+            "node": "03 IMAGES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "03 IMAGES": {
+      "main": [
+        [
+          {
+            "node": "04 MEDIA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "04 MEDIA": {
+      "main": [
+        [
+          {
+            "node": "05 REFERENCE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "05 REFERENCE": {
+      "main": [
+        [
+          {
+            "node": "06 SPECS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "06 SPECS": {
+      "main": [
+        [
+          {
+            "node": "07 ASSETS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "01 MOCK UP SCAMPS": {
+      "main": [
+        [
+          {
+            "node": "02 COPY",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "02 COPY": {
+      "main": [
+        [
+          {
+            "node": "03 REFERENCE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "03 REFERENCE": {
+      "main": [
+        [
+          {
+            "node": "04 ARTWORK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "04 ARTWORK": {
+      "main": [
+        [
+          {
+            "node": "05 TVC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "05 TVC": {
+      "main": [
+        [
+          {
+            "node": "06 CREATIVE TEMPLATES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "06 CREATIVE TEMPLATES": {
+      "main": [
+        [
+          {
+            "node": "07 DIGITAL STAGING",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "01 BACKGROUNDER": {
+      "main": [
+        [
+          {
+            "node": "02 RESEARCH",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "01 LOW RES": {
+      "main": [
+        [
+          {
+            "node": "02 HIGH RES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "02 HIGH RES": {
+      "main": [
+        [
+          {
+            "node": "03 PURCHASED",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "03 PURCHASED": {
+      "main": [
+        [
+          {
+            "node": "04 VECTA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "04 VECTA": {
+      "main": [
+        [
+          {
+            "node": "05 NOT PURCHASED",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "05 NOT PURCHASED": {
+      "main": [
+        [
+          {
+            "node": "08 PRESENTATION",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "_ARCHIVE": {
+      "main": [
+        [
+          {
+            "node": "01 TEMPLATES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "_ARCHIVE1": {
+      "main": [
+        [
+          {
+            "node": "01_23012026_ClientPresV01",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "_ARCHIVE2": {
+      "main": [
+        [
+          {
+            "node": "01 TEMPLATES1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "01 ESTIMATES": {
+      "main": [
+        [
+          {
+            "node": "02 QUOTES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "02 QUOTES": {
+      "main": [
+        [
+          {
+            "node": "03 PURCHASE ORDERS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "03 PURCHASE ORDERS": {
+      "main": [
+        [
+          {
+            "node": "04 INVOICES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "04 INVOICES": {
+      "main": [
+        [
+          {
+            "node": "05 RECCE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "06 CLEARADS": {
+      "main": [
+        [
+          {
+            "node": "01 FINANCE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "_ARCHIVE3": {
+      "main": [
+        [
+          {
+            "node": "01 BRIEF TEMPLATES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "01 PRE PRODUCTION": {
+      "main": [
+        [
+          {
+            "node": "02 POST PRODUCTIONS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "01 FINANCE": {
+      "main": [
+        [
+          {
+            "node": "01 ESTIMATES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "05 SUPPLIED": {
+      "main": [
+        [
+          {
+            "node": "01 CLIENT BRIEF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "05 RECCE": {
+      "main": [
+        [
+          {
+            "node": "02 BRIEFS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "07 ASSETS": {
+      "main": [
+        [
+          {
+            "node": "06 CREATIVE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "06 CREATIVE": {
+      "main": [
+        [
+          {
+            "node": "01 MOCK UP SCAMPS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "02 POST PRODUCTIONS": {
+      "main": [
+        [
+          {
+            "node": "05 SUPPLIED",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "07 DIGITAL STAGING": {
+      "main": [
+        [
+          {
+            "node": "07 IMAGES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "01_23012026_ClientPresV01": {
+      "main": [
+        [
+          {
+            "node": "10 FINISHED ART",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "01 TEMPLATES": {
+      "main": [
+        [
+          {
+            "node": "09 PDFS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "01 TEMPLATES1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "01 BRIEF TEMPLATES": {
+      "main": [
+        [
+          {
+            "node": "03 STRATEGY",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "aa9d923f-8802-4443-b5f8-d41fa4876103",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bbeea15b1024389331eb7374325878e8f2a1f4a74244cd3f4dc2bea8b92be6a4"
+  },
+  "nodeGroups": [],
+  "id": "bsMHTyD6s3ibjv70",
+  "tags": []
+}

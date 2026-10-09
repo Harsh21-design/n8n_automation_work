@@ -1,0 +1,2522 @@
+{
+  "name": "07 Employee Workflow Scheduling",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// n8n CODE NODE\n// Extract Correct Month + CURRENT Runtime Year\n// Production Grade\n//\n// RULES:\n// - ALWAYS use CURRENT runtime year\n// - NEVER trust years from brief/timeline\n// - If deadline day = 1\n//   → use PREVIOUS month\n// ============================================\n\n// ============================================\n// INPUTS\n// ============================================\n\nconst timeline =\n  $input.first()?.json?.timeline || [];\n\nconst deadline =\n  $input.first()?.json?.deadline || {};\n\n// ============================================\n// CURRENT RUNTIME DATE\n// ============================================\n\nconst now =\n  new Date();\n\nconst CURRENT_YEAR =\n  now.getFullYear();\n\n// ============================================\n// MONTHS\n// ============================================\n\nconst months = [\n\n  \"January\",\n  \"February\",\n  \"March\",\n  \"April\",\n  \"May\",\n  \"June\",\n  \"July\",\n  \"August\",\n  \"September\",\n  \"October\",\n  \"November\",\n  \"December\"\n];\n\n// ============================================\n// HELPERS\n// ============================================\n\nfunction getPreviousMonth(dateObj) {\n\n  const d =\n    new Date(dateObj);\n\n  d.setMonth(\n    d.getMonth() - 1\n  );\n\n  return {\n    month:\n      months[d.getMonth()],\n\n    // ALWAYS CURRENT YEAR\n    year:\n      String(CURRENT_YEAR)\n  };\n}\n\nfunction extractMonth(text = '') {\n\n  const clean =\n    String(text).trim();\n\n  for (const month of months) {\n\n    const regex =\n      new RegExp(\n        `\\\\b${month}\\\\b`,\n        'i'\n      );\n\n    if (regex.test(clean)) {\n\n      return month;\n    }\n  }\n\n  return null;\n}\n\n// ============================================\n// MAIN LOGIC\n// ============================================\n\nlet foundMonth = null;\n\n// ============================================\n// PRIORITY 1:\n// deadline.iso_date\n// ============================================\n\nif (deadline?.iso_date) {\n\n  const d =\n    new Date(deadline.iso_date);\n\n  if (!isNaN(d)) {\n\n    // BUSINESS RULE:\n    // If deadline is 1st day\n    // use PREVIOUS month\n\n    if (d.getDate() === 1) {\n\n      const prev =\n        getPreviousMonth(d);\n\n      foundMonth =\n        prev.month;\n\n    } else {\n\n      foundMonth =\n        months[d.getMonth()];\n    }\n  }\n}\n\n// ============================================\n// PRIORITY 2:\n// deadline.raw\n// ============================================\n\nif (\n  !foundMonth &&\n  deadline?.raw\n) {\n\n  foundMonth =\n    extractMonth(\n      deadline.raw\n    );\n}\n\n// ============================================\n// PRIORITY 3:\n// timeline\n// ============================================\n\nif (!foundMonth) {\n\n  for (const item of timeline) {\n\n    const values = [\n\n      item?.phase,\n      item?.date,\n      item?.description\n    ];\n\n    for (const val of values) {\n\n      if (!val) {\n        continue;\n      }\n\n      const month =\n        extractMonth(val);\n\n      if (month) {\n\n        foundMonth =\n          month;\n\n        break;\n      }\n    }\n\n    if (foundMonth) {\n      break;\n    }\n  }\n}\n\n// ============================================\n// FINAL FALLBACK\n// ============================================\n\nif (!foundMonth) {\n\n  foundMonth =\n    months[now.getMonth()];\n}\n\n// ============================================\n// ALWAYS USE CURRENT YEAR\n// ============================================\n\nconst foundYear =\n  String(CURRENT_YEAR);\n\n// ============================================\n// SHEET NAME\n// ============================================\n\nconst shortYear =\n  foundYear.slice(-2);\n\nconst sheetName =\n  `${foundMonth} ${shortYear}`;\n\n// ============================================\n// OUTPUT\n// ============================================\n\nreturn [{\n  json: {\n\n    month:\n      foundMonth,\n\n    year:\n      foundYear,\n\n    sheet_name:\n      sheetName\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        64
+      ],
+      "id": "f0289b7e-856d-4f78-8e94-078f0c84e97b",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "estimate_data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        416
+      ],
+      "id": "141b6da1-fa24-499e-a439-cee534113dd0",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "sheet_data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        240
+      ],
+      "id": "15ca8629-bf10-4229-b4fe-2be06afdf7be",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-6",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-6"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an advanced workforce free-capacity calculation and employee availability analysis agent.\n\nYour responsibility is to accurately calculate REAL DAILY FREE WORKING AVAILABILITY for ALL employees/freelancers present in the provided sheet data.\n\nYou specialize in:\n\n* employee availability calculation\n* freelancer capacity tracking\n* workforce scheduling analysis\n* workload aggregation\n* free-time detection\n* operational utilization analysis\n* production resource allocation\n\n━━━━━━━━━━━━━━━━━━━━\nPRIMARY OBJECTIVE\n━━━━━━━━━━━━━━━━━━━━\n\nYour MOST IMPORTANT responsibility is to determine for EVERY employee/freelancer:\n\n* how many hours are already booked each day\n* how many FREE WORKING HOURS remain each day\n* which days are completely free\n* which days are partially available\n* which days are fully booked\n* which days are overbooked\n\nYou must focus mainly on:\nREAL DAILY FREE TIME AVAILABILITY.\n\n━━━━━━━━━━━━━━━━━━━━\nINPUTS\n━━━━━━━━━━━━━━━━━━━━\n\nsheet data:\n{{ JSON.stringify($json.sheet_data) }}\n\n━━━━━━━━━━━━━━━━━━━━\nSHEET STRUCTURE RULES\n━━━━━━━━━━━━━━━━━━━━\n\nIMPORTANT:\n\n* Actual scheduling/project rows START from row number 8 onwards\n* Rows before row 8 contain:\n  * workflow stages information\n  * layout/meta information\n\nYou MUST ignore rows before row 8 for workload calculations.\n\n━━━━━━━━━━━━━━━━━━━━\nDATE COLUMN RULES\n━━━━━━━━━━━━━━━━━━━━\n\nDate row & columns start from:\n\n* row_number 8 onwards\n* col_3 onwards\n\nExample:\n\n* col_3 = first working day/date\n* col_4 = second date\n* col_5 = third date\n* etc.\n\nUse the actual chronological order from the sheet.\n\nDo NOT invent dates.\n\n━━━━━━━━━━━━━━━━━━━━\nDATE INTERPRETATION RULES\n━━━━━━━━━━━━━━━━━━━━\n\nThe sheet already contains the EXACT valid working dates.\n\nYou MUST NEVER generate, recreate, infer, interpolate, or assume missing calendar dates.\n\nYou MUST ONLY use dates that physically exist in the sheet.\n\nIMPORTANT:\n\nDate headers are located in:\nrow 8\n\nWorking date columns start from:\ncol_3 onwards\n\nThese dates represent ONLY WORKING DAYS.\n\nWeekends (Saturday/Sunday) are already excluded from the sheet.\n\nSome months may start from:\n\n* the 1st of the month\n* OR a later date\n* OR previous month carry-over working dates\n\nExamples:\n\nExample 1 — Aug 24 sheet:\n\ncol_3 = 1\ncol_4 = 2\ncol_5 = 5\ncol_6 = 6\n\nThis means:\n\nAug 3 and Aug 4 DO NOT exist in sheet\nbecause they are weekend/off days\n\nExample 2 — Mar 26 sheet:\n\nsheet may start from Mar 2\nnot Mar 1\n\nThis is VALID and intentional.\n\nCRITICAL RULES:\n\n* NEVER generate missing dates\n* NEVER assume continuous calendar ranges\n* NEVER fill weekend gaps\n* NEVER create dates that do not exist in row 8\n* NEVER infer Saturdays/Sundays\n* NEVER assume col count equals full month dates\n* ONLY use exact date values found in row 8\n* Preserve exact date ordering from the sheet\n* Use the sheet dates exactly as provided\n\nThe sheet itself is the ONLY source of truth for valid working dates.\n\nFor every employee calculation:\n\n* map col_3 → actual row 8 col_3 date\n* map col_4 → actual row 8 col_4 date\n* etc.\n\nDo NOT reinterpret the calendar.\n\n━━━━━━━━━━━━━━━━━━━━\nMONTH INTERPRETATION RULES\n━━━━━━━━━━━━━━━━━━━━\n\nThe sheet belongs to ONE briefing month only.\n\nALL dates belong to:\n{{ $('Code in JavaScript').item.json.month }}\n\nExample:\n\nAug 24 sheet = ALL dates belong to August\nMar 26 sheet = ALL dates belong to March\n\nIMPORTANT:\n\nDate numbers in row 8 are ONLY day numbers.\n\nExamples:\n\ncol_3 = 1\ncol_4 = 2\ncol_5 = 5\n\nFor an Aug sheet this means:\n\nAug 1\nAug 2\nAug 5\n\nNOT:\n\nJul 1\nJul 2\n\nCRITICAL RULES:\n\n* NEVER infer previous months\n* NEVER infer next months\n* NEVER convert dates to another month\n* NEVER generate \"Jul\" if sheet is August\n* NEVER generate \"Sep\" if sheet is August\n* ALL row 8 dates belong to the CURRENT SHEET MONTH\n* Use the sheet month consistently for EVERY date column\n\nThe month must come ONLY from the sheet briefing/month context.\n\n━━━━━━━━━━━━━━━━━━━━\nEMPLOYEE DETECTION RULES\n━━━━━━━━━━━━━━━━━━━━\n\nYou must dynamically detect ALL employees/freelancers from the sheet.\n\nEmployee rows are identified as:\n\n* rows where \"Briefing\" contains employee/freelancer names\n* these rows act as section headers\n* project/job rows appear BELOW employee rows\n* employee section continues until:\n  * another employee row appears\n  * OR \"Total hours per day\" row appears\n\nExamples of employee/freelancer rows:\n\nCREATIVE TEAMS:\n\n* Jon & Christian\n* Sarah\n* Cal\n* Lauren\n\nDESIGNERS:\n\n* Nick\n* Mavis\n* Dani\n\n━━━━━━━━━━━━━━━━━━━━\nPROJECT/JOB ROW RULES\n━━━━━━━━━━━━━━━━━━━━\n\nProject rows are rows BELOW employee rows.\n\nProject rows usually contain:\n\n* job number\n* project description\n* allocated hours in date columns\n\nExamples:\n\n* JBCA0221 Private Digital Ads Rollout\n* QBEP0083 EV - Trade Stand Toolkit\n\nIGNORE these rows:\n\n* employee header rows\n* blank rows\n* separator rows\n* \"Total hours per day\"\n* month/date header rows\n\n━━━━━━━━━━━━━━━━━━━━\nBUSINESS RULES\n━━━━━━━━━━━━━━━━━━━━\n\nSTRICT DAILY LIMIT:\n\nEach employee/freelancer can work a maximum of 8 hours per day.\n\nExamples:\n\n* 0 booked → 8 free hours\n* 1 booked → 7 free hours\n* 2 booked → 6 free hours\n* 4 booked → 4 free hours\n* 7 booked → 1 free hour\n* 8 booked → fully booked\n* 9+ booked → overbooked\n\n━━━━━━━━━━━━━━━━━━━━\nCALCULATION LOGIC\n━━━━━━━━━━━━━━━━━━━━\n\nFOR EACH EMPLOYEE/FREELANCER:\n\n1. Find employee section\n2. Read ALL project/job rows under that employee\n3. Aggregate booked hours across ALL projects\n4. Calculate booked hours PER DAY\n5. Calculate free hours PER DAY\n\nFORMULA:\n\nFREE HOURS =\n8 - TOTAL BOOKED HOURS\n\n━━━━━━━━━━━━━━━━━━━━\nSTRICT AGGREGATION RULES\n━━━━━━━━━━━━━━━━━━━━\n\nTHIS IS THE MOST IMPORTANT CALCULATION RULE.\n\nYou MUST:\n\n* aggregate ALL project rows under the SAME employee\n* SUM hours across MULTIPLE jobs for the SAME date\n* NEVER overwrite previously detected hours\n* NEVER stop after first matching row\n* NEVER use only one project row\n* NEVER ignore decimal values\n* NEVER calculate rows independently\n\nEXAMPLE:\n\nEmployee:\nDani\n\nProject A:\nMar 2 = 3h\n\nProject B:\nMar 2 = 2h\n\nProject C:\nMar 2 = 1.5h\n\nFINAL RESULT:\n\nMar 2 booked_hours = 6.5\nMar 2 free_hours = 1.5\n\nNOT:\n3\nNOT:\n2\nNOT:\n1.5\n\nYou MUST SUM ALL HOURS FOR THE SAME DATE.\n\n━━━━━━━━━━━━━━━━━━━━\nSTRICT EMPLOYEE SECTION RULES\n━━━━━━━━━━━━━━━━━━━━\n\nEmployee sections work like this:\n\n[EMPLOYEE HEADER ROW]\n↓\nproject row\nproject row\nproject row\n↓\nnext employee header\n\nYou MUST:\n\n1. detect employee header row\n2. assign ALL following project rows to THAT employee\n3. stop ONLY when:\n   * another employee row appears\n   * OR \"Total hours per day\" appears\n\nCRITICAL:\n\n* NEVER mix employees together\n* NEVER leak project rows into another employee section\n* NEVER assign hours from one employee to another employee\n* Every project row belongs ONLY to the nearest active employee section above it\n\n━━━━━━━━━━━━━━━━━━━━\nSTRICT DATE MAPPING RULES\n━━━━━━━━━━━━━━━━━━━━\n\nFor EVERY calculation:\n\n* map each workload cell directly to its EXACT row 8 column date\n* preserve exact sheet ordering\n* NEVER reinterpret dates\n* NEVER infer hidden dates\n* NEVER create continuous calendars\n* NEVER generate weekends\n\nONLY dates physically present in row 8 are valid.\n\n━━━━━━━━━━━━━━━━━━━━\nIMPORTANT DATA RULES\n━━━━━━━━━━━━━━━━━━━━\n\nTreat ALL of the following as ZERO:\n\n* Blank cells\n* Null values\n* \"-\"\n* Empty strings\n* whitespace-only values\n\nONLY numeric values represent booked hours.\n\nIMPORTANT:\n\nCells may contain:\n\n* integers\n* decimals\n* strings containing decimals\n\nYou MUST safely parse ALL numeric values.\n\nExamples:\n\n\"2\" = 2\n\"2.5\" = 2.5\n2 = 2\n2.75 = 2.75\n\n━━━━━━━━━━━━━━━━━━━━\nOVERBOOKING RULES\n━━━━━━━━━━━━━━━━━━━━\n\nIf booked hours exceed 8:\n\nExample:\n\n11 booked hours\n\nThen:\n\nfree_hours = -3\n\nCRITICAL:\n\n* DO NOT cap values at 8\n* DO NOT clamp negative free hours to 0\n* DO NOT ignore overloaded days\n* Overbooked days MUST appear in output\n\n━━━━━━━━━━━━━━━━━━━━\nVERY IMPORTANT VALIDATION RULES\n━━━━━━━━━━━━━━━━━━━━\n\nThe output is WRONG if:\n\n* employees are missing\n* freelancers are missing\n* free hours are missing\n* daily calculations are missing\n* hours are not aggregated across jobs\n* same-day hours are overwritten instead of summed\n* wrong dates/month are selected\n* overbooked days are ignored\n* employee sections are mixed together\n* project rows leak into another employee section\n* JSON format is not followed\n* explanations are added outside JSON\n* weekends are hallucinated\n* missing dates are generated\n\n━━━━━━━━━━━━━━━━━━━━\nREQUIRED OUTPUT\n━━━━━━━━━━━━━━━━━━━━\n\nReturn ONLY structured JSON.\n\nDo NOT explain calculations.\nDo NOT provide reasoning.\nDo NOT provide summaries.\nDo NOT provide markdown tables.\nDo NOT provide operational commentary.\n\nOUTPUT FORMAT:\n\n[\n  {\n    \"employee\": \"Dani\",\n    \"free_time\": [\n      {\n        \"date\": \"Mar 2\",\n        \"booked_hours\": 5,\n        \"free_hours\": 3\n      },\n      {\n        \"date\": \"Mar 3\",\n        \"booked_hours\": 4,\n        \"free_hours\": 4\n      }\n    ]\n  },\n  {\n    \"employee\": \"Jon\",\n    \"free_time\": [\n      {\n        \"date\": \"Mar 2\",\n        \"booked_hours\": 2,\n        \"free_hours\": 6\n      }\n    ]\n  }\n]\n\n━━━━━━━━━━━━━━━━━━━━\nFINAL EXECUTION RULE\n━━━━━━━━━━━━━━━━━━━━\n\nYou are NOT estimating availability.\n\nYou are performing STRICT WORKLOAD ACCOUNTING.\n\nEvery free_hours value MUST be mathematically derived from:\n\nSUM OF ALL PROJECT HOURS\nFOR THAT EMPLOYEE\nFOR THAT EXACT DATE COLUMN."
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 10000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        176,
+        240
+      ],
+      "id": "85d236b7-a492-4bd4-af04-f38fad8958bb",
+      "name": "Free Time Analyser Agent",
+      "retryOnFail": true,
+      "credentials": {
+        "anthropicApi": {
+          "id": "Jg1V1gnBT6Yoq4CM",
+          "name": "Anthropic account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// n8n CODE NODE\n// Parse AI JSON Response\n// ============================================\n\n// Get raw AI response\nconst raw =\n  $input.first().json.content[0].text;\n\n// Remove markdown wrappers\nconst cleaned = raw\n  .replace(/```json/g, '')\n  .replace(/```/g, '')\n  .trim();\n\n// Parse JSON array\nconst data = JSON.parse(cleaned);\n\n// Return each employee as separate item\nreturn data.map(employeeData => {\n  return {\n    json: employeeData\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        240
+      ],
+      "id": "9dd16ca3-f26e-4983-9789-e04a8d85257e",
+      "name": "employee free hours"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "employee_free_hour_data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        688,
+        240
+      ],
+      "id": "6e08e538-3f07-40e0-bdeb-ca9e058ad478",
+      "name": "Aggregate2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fb7bd15f-a802-448f-824c-556db6dfb620",
+              "leftValue": "={{ $json[\"Task Type Code\"] }}",
+              "rightValue": "CRPA",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "2beb999d-539c-4819-b5aa-d7ab791d798f",
+              "leftValue": "={{ $json[\"Task Type Code\"] }}",
+              "rightValue": "SCOP",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "eeb84d40-3e6f-47b2-94e7-84a57f226001",
+              "leftValue": "={{ $json[\"Task Type Code\"] }}",
+              "rightValue": "ADRI",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "a6a1dec1-2b25-4d33-b201-24544f179562",
+              "leftValue": "={{ $json[\"Task Type Code\"] }}",
+              "rightValue": "HODE",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -368,
+        224
+      ],
+      "id": "e2904e27-c3ec-4a9f-84bb-ef08092934eb",
+      "name": "Filter out tasktypes: TIME1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "aec06485-5804-48a7-975e-3e3fee2b05a1",
+              "name": "estimate_data",
+              "value": "={{ $('transformed estimate').item.json.updated_Estimate }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -816,
+        416
+      ],
+      "id": "7ef22b81-963d-45ed-92db-cd1da15b1521",
+      "name": "estimate data"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "emp_estimate_data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        416
+      ],
+      "id": "c6a495b0-6c1f-4df6-b122-c2230810e5b2",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        912,
+        400
+      ],
+      "id": "bd7e51b0-792b-43ea-8e3c-5acc5f2941e6",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// INPUTS\nconst empEstimateData = $input.first().json.emp_estimate_data;\n\n// EMPLOYEE -> TASK TYPE MAP\nconst employeeTaskMap = {\n  \"Jon and Christian\": [\"CRPA\"],\n  \"Sarah\": [\"SCOP\"],\n  \"Cal\": [\"ADRI\"],\n  \"Nick\": [\"HODE\"],\n  \"Mavis\": [\"MODE\", \"EXMO\"],\n  \"Lauren\":[\"COPY\"],\n  \"Dani\": [\"SNDE\", \"EXSD\"]\n};\n\nconst results = [];\n\n// LOOP THROUGH EMPLOYEE MAP\nfor (const [employeeName, mappedTaskTypes] of Object.entries(employeeTaskMap)) {\n\n  // MATCH ESTIMATE ROWS\n  const matchedEstimates = empEstimateData.filter(est =>\n    mappedTaskTypes.includes(est[\"Task Type Code\"])\n  );\n\n  // CREATE OUTPUT\n  for (const estimate of matchedEstimates) {\n\n    results.push({\n      \"employee\": employeeName,\n      \"Job No.\": estimate[\"Job Number\"],\n      \"Job Description\": estimate[\"Job Description\"],\n      \"taskTypes\": estimate[\"Task Type Code\"],\n      \"task_description\": estimate[\"Description\"],\n      \"Units\": estimate[\"Units\"]\n    });\n\n  }\n}\n\nreturn results.map(item => ({ json: item }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        400
+      ],
+      "id": "bdda367f-ca00-4e95-8dc6-f64154a09efa",
+      "name": "Employee TaskType Data"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "Employee Tasktype Data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        400
+      ],
+      "id": "884e6333-62ed-4330-90e8-2f571d82596f",
+      "name": "Aggregate3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// n8n CODE NODE\n// Multi Employee Allocation Engine\n// With Proper Conflict Detection\n// ============================================\n\n// ============================================\n// SAFE HELPERS\n// ============================================\n\nfunction safeNumber(value) {\n\n  const num = parseFloat(value);\n\n  return Number.isFinite(num)\n    ? num\n    : 0;\n}\n\nfunction safeArray(value) {\n\n  return Array.isArray(value)\n    ? value\n    : [];\n}\n\nfunction safeString(value) {\n\n  if (\n    value === null ||\n    value === undefined\n  ) {\n    return \"\";\n  }\n\n  return String(value).trim();\n}\n\n// ============================================\n// CONFIG\n// ============================================\n\n// weekly overload threshold\nconst MAX_HOURS_PER_WEEK = 40;\n\n// ============================================\n// INPUTS\n// ============================================\n\n// employee free hour data\nconst employeeFreeHours =\n  safeArray(\n    $('Aggregate2')\n      .first()\n      .json\n      .employee_free_hour_data\n  );\n\n// employee task assignment data\nconst estimateData =\n  safeArray(\n    $('Aggregate3')\n      .first()\n      .json[\"Employee Tasktype Data\"]\n  );\n\n// project timeline\nconst timeline =\n  $input.first()\n    ?.json\n    ?.project_timeline || {};\n\n// ============================================\n// VALIDATE TIMELINE\n// ============================================\n\nif (\n  !timeline.start_date ||\n  !timeline.end_date\n) {\n\n  throw new Error(\n    'Missing project timeline dates'\n  );\n}\n\n// ============================================\n// TIMELINE DATES\n// ============================================\n\nconst timelineStart =\n  new Date(timeline.start_date);\n\nconst timelineEnd =\n  new Date(timeline.end_date);\n\ntimelineStart.setHours(0,0,0,0);\ntimelineEnd.setHours(0,0,0,0);\n\n// ============================================\n// FORMAT DATE\n// ============================================\n\nfunction formatTimelineDate(dateStr) {\n\n  const date =\n    new Date(dateStr);\n\n  return date.toLocaleDateString(\n    'en-US',\n    {\n      month: 'short',\n      day: 'numeric'\n    }\n  );\n}\n\n// ============================================\n// PARSE SHEET DATE\n// ============================================\n\nfunction parseSheetDate(dateStr) {\n\n  if (!dateStr) {\n    return null;\n  }\n\n  const cleanDate =\n    safeString(dateStr);\n\n  const year =\n    timelineStart.getFullYear();\n\n  const parsed =\n    new Date(`${cleanDate} ${year}`);\n\n  if (\n    isNaN(parsed.getTime())\n  ) {\n    return null;\n  }\n\n  parsed.setHours(0,0,0,0);\n\n  return parsed;\n}\n\n// ============================================\n// GET WEEK KEY\n// ============================================\n\nfunction getWeekKey(dateObj) {\n\n  const date =\n    new Date(dateObj);\n\n  const firstDay =\n    new Date(date);\n\n  firstDay.setDate(\n    date.getDate() - date.getDay()\n  );\n\n  firstDay.setHours(0,0,0,0);\n\n  return firstDay\n    .toISOString()\n    .split('T')[0];\n}\n\n// ============================================\n// GROUP TASKS BY EMPLOYEE\n// ============================================\n\nconst employeeTaskMap = {};\n\nfor (const item of estimateData) {\n\n  const employee =\n    safeString(item.employee);\n\n  if (!employee) {\n    continue;\n  }\n\n  if (!employeeTaskMap[employee]) {\n\n    employeeTaskMap[employee] = [];\n  }\n\n  employeeTaskMap[employee]\n    .push(item);\n}\n\n// ============================================\n// PROCESS EMPLOYEES\n// ============================================\n\nconst results = [];\n\nfor (const employeeFree of employeeFreeHours) {\n\n  // ==========================================\n  // EMPLOYEE\n  // ==========================================\n\n  const employeeName =\n    safeString(\n      employeeFree.employee\n    );\n\n  if (!employeeName) {\n    continue;\n  }\n\n  // ==========================================\n  // FREE TIME\n  // ==========================================\n\n  const freeTime =\n    safeArray(\n      employeeFree.free_time\n    );\n\n  // ==========================================\n  // EMPLOYEE TASKS\n  // ==========================================\n\n  const employeeTasks =\n    employeeTaskMap[\n      employeeName\n    ] || [];\n\n  const assignedToProject =\n    employeeTasks.length > 0;\n\n  // ==========================================\n  // NOT ASSIGNED\n  // ==========================================\n\n  if (!assignedToProject) {\n\n    results.push({\n\n      employee:\n        employeeName,\n\n      assigned_to_project:\n        false,\n\n      total_allocated_hours:\n        0\n\n    });\n\n    continue;\n  }\n\n  // ==========================================\n  // REQUIRED HOURS\n  // ==========================================\n\n  const totalRequiredHours =\n    employeeTasks.reduce(\n      (sum, item) =>\n        sum +\n        safeNumber(item.Units),\n      0\n    );\n\n  // ==========================================\n  // JOB INFO\n  // ==========================================\n\n  const firstTask =\n    employeeTasks[0] || {};\n\n  const jobNo =\n    safeString(\n      firstTask[\"Job No.\"]\n    );\n\n  const jobDescription =\n    safeString(\n      firstTask[\"Job Description\"]\n    );\n\n  const taskType =\n    safeString(\n      firstTask.taskTypes\n    );\n\n  // ==========================================\n  // SORT FREE TIME\n  // ==========================================\n\n  const sortedFreeTime =\n    [...freeTime].sort((a, b) => {\n\n      const dateA =\n        parseSheetDate(a.date);\n\n      const dateB =\n        parseSheetDate(b.date);\n\n      return dateA - dateB;\n    });\n\n  // ==========================================\n  // ALLOCATION ENGINE\n  // ==========================================\n\n  let remainingHours =\n    totalRequiredHours;\n\n  const allocations = [];\n\n  const weeklyExistingHours = {};\n  const weeklyNewHours = {};\n\n  // ==========================================\n  // PROCESS DAYS\n  // ==========================================\n\n  for (const day of sortedFreeTime) {\n\n    const sheetDate =\n      parseSheetDate(day.date);\n\n    if (!sheetDate) {\n      continue;\n    }\n\n    // only inside project timeline\n    if (\n      sheetDate < timelineStart ||\n      sheetDate > timelineEnd\n    ) {\n      continue;\n    }\n\n    const freeHours =\n      safeNumber(\n        day.free_hours\n      );\n\n    // ======================================\n    // WEEK KEY\n    // ======================================\n\n    const weekKey =\n      getWeekKey(sheetDate);\n\n    if (\n      !weeklyExistingHours[weekKey]\n    ) {\n\n      weeklyExistingHours[\n        weekKey\n      ] = 0;\n    }\n\n    if (\n      !weeklyNewHours[weekKey]\n    ) {\n\n      weeklyNewHours[\n        weekKey\n      ] = 0;\n    }\n\n    // ======================================\n    // EXISTING HOURS\n    // ======================================\n\n    const existingHours =\n      8 - freeHours;\n\n    weeklyExistingHours[\n      weekKey\n    ] += existingHours;\n\n    // ======================================\n    // SKIP IF NO REMAINING\n    // ======================================\n\n    if (remainingHours <= 0) {\n      continue;\n    }\n\n    // ======================================\n    // SKIP FULLY OCCUPIED DAY\n    // ======================================\n\n    if (freeHours <= 0) {\n      continue;\n    }\n\n    // ======================================\n    // ALLOCATE HOURS\n    // ======================================\n\n    const allocatedHours =\n      Math.min(\n        freeHours,\n        remainingHours\n      );\n\n    weeklyNewHours[\n      weekKey\n    ] += allocatedHours;\n\n    allocations.push({\n\n      employee:\n        employeeName,\n\n      task_type:\n        taskType,\n\n      date:\n        safeString(day.date),\n\n      allocated_hours:\n        Number(\n          allocatedHours.toFixed(2)\n        ),\n\n      remaining_free_hours:\n        Number(\n          (\n            freeHours -\n            allocatedHours\n          ).toFixed(2)\n        )\n\n    });\n\n    // reduce remaining\n    remainingHours =\n      Number(\n        (\n          remainingHours -\n          allocatedHours\n        ).toFixed(2)\n      );\n  }\n\n  // ==========================================\n  // TOTAL ALLOCATED\n  // ==========================================\n\n  const totalAllocatedHours =\n    Number(\n      (\n        totalRequiredHours -\n        remainingHours\n      ).toFixed(2)\n    );\n\n  // ==========================================\n  // CONFLICT DETECTION\n  // ==========================================\n\n  let conflict = false;\n\n  const conflictTypes = [];\n\n  const conflictDetails = [];\n\n  // ==========================================\n  // CONFLICT 1\n  // CAPACITY CONFLICT\n  // ==========================================\n\n  if (remainingHours > 0) {\n\n    conflict = true;\n\n    conflictTypes.push(\n      'capacity_conflict'\n    );\n\n    conflictDetails.push({\n\n      employee:\n        employeeName,\n\n      issue:\n        'Insufficient free hours inside timeline',\n\n      required_hours:\n        totalRequiredHours,\n\n      allocated_hours:\n        totalAllocatedHours,\n\n      unallocated_hours:\n        Number(\n          remainingHours.toFixed(2)\n        )\n\n    });\n  }\n\n  // ==========================================\n  // CONFLICT 2\n  // WEEKLY OVERLOAD\n  // ==========================================\n\n  for (const weekKey in weeklyNewHours) {\n\n    const existingHours =\n      weeklyExistingHours[\n        weekKey\n      ] || 0;\n\n    const newHours =\n      weeklyNewHours[\n        weekKey\n      ] || 0;\n\n    const totalWeekHours =\n      existingHours +\n      newHours;\n\n    if (\n      totalWeekHours >\n      MAX_HOURS_PER_WEEK\n    ) {\n\n      conflict = true;\n\n      if (\n        !conflictTypes.includes(\n          'weekly_overload'\n        )\n      ) {\n\n        conflictTypes.push(\n          'weekly_overload'\n        );\n      }\n\n      conflictDetails.push({\n\n        employee:\n          employeeName,\n\n        week:\n          weekKey,\n\n        existing_hours:\n          Number(\n            existingHours.toFixed(2)\n          ),\n\n        new_hours:\n          Number(\n            newHours.toFixed(2)\n          ),\n\n        total_hours:\n          Number(\n            totalWeekHours.toFixed(2)\n          ),\n\n        max_allowed_hours:\n          MAX_HOURS_PER_WEEK,\n\n        overload_hours:\n          Number(\n            (\n              totalWeekHours -\n              MAX_HOURS_PER_WEEK\n            ).toFixed(2)\n          )\n\n      });\n    }\n  }\n\n  // ==========================================\n  // FINAL RESULT\n  // ==========================================\n\n  results.push({\n\n    employee:\n      employeeName,\n\n    assigned_to_project:\n      true,\n\n    task_type:\n      taskType,\n\n    job_no:\n      jobNo,\n\n    job_description:\n      jobDescription,\n\n    total_required_hours:\n      Number(\n        totalRequiredHours.toFixed(2)\n      ),\n\n    total_allocated_hours:\n      totalAllocatedHours,\n\n    unallocated_hours:\n      Number(\n        remainingHours.toFixed(2)\n      ),\n\n    project_start_date:\n      formatTimelineDate(\n        timeline.start_date\n      ),\n\n    project_end_date:\n      formatTimelineDate(\n        timeline.end_date\n      ),\n\n    // ======================================\n    // CONFLICTS\n    // ======================================\n\n    conflict,\n\n    conflict_types:\n      conflictTypes,\n\n    conflict_details:\n      conflictDetails,\n\n    allow_auto_population:\n      conflict === false,\n\n    requires_manual_review:\n      conflict === true,\n\n    allocations\n\n  });\n}\n\n// ============================================\n// OUTPUT\n// ============================================\n\nreturn results.map(item => ({\n  json: item\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        400
+      ],
+      "id": "1c3f2b72-6854-4574-80bc-0bce6193a575",
+      "name": "New Project Hours"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "Employees_New_Project_Hours",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        656
+      ],
+      "id": "f24fcb70-4789-4f25-8ff3-78c7010fc3f5",
+      "name": "Aggregate4"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "Workflow AutomationTesting",
+        "limit": 1,
+        "filter": {
+          "whatToSearch": "files"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -400,
+        768
+      ],
+      "id": "254f5ba9-6f47-4973-ae73-93cb16c005de",
+      "name": "Search spreadsheet",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// n8n CODE NODE\n// Find Correct Insert Row For Assigned Employees\n// ============================================\n\n// ============================================\n// INPUTS\n// ============================================\n\n// full sheet data\nconst rows =\n$input.first().json.data || [];\n\n// assigned employee allocation data\nconst employeeProjects =\n  $('Aggregate4')\n    .first()\n    ?.json\n    ?.Employees_New_Project_Hours || [];\n\n// ============================================\n// CONFIG\n// ============================================\n\nconst TOTAL_HOURS_LABEL =\n  'total hours per day';\n\n// ============================================\n// SAFE HELPERS\n// ============================================\n\nfunction safeString(value) {\n\n  if (\n    value === null ||\n    value === undefined\n  ) {\n    return '';\n  }\n\n  return String(value).trim();\n}\n\nfunction safeNumber(value) {\n\n  const num = parseFloat(value);\n\n  return Number.isFinite(num)\n    ? num\n    : 0;\n}\n\n// ============================================\n// GET ALL DATE COLUMNS\n// ============================================\n\nconst dateColumns =\n  Object.keys(rows[0] || {})\n    .filter(key =>\n      /^col_\\d+$/.test(key)\n    )\n    .sort((a, b) => {\n\n      const aNum =\n        Number(a.replace('col_', ''));\n\n      const bNum =\n        Number(b.replace('col_', ''));\n\n      return aNum - bNum;\n    });\n\n// ============================================\n// RESULTS\n// ============================================\n\nconst results = [];\n\n// ============================================\n// PROCESS EMPLOYEES\n// ============================================\n\nfor (const employeeData of employeeProjects) {\n\n  // only assigned employees\n  if (\n    employeeData.assigned_to_project !== true\n  ) {\n    continue;\n  }\n\n  const employeeName =\n    safeString(\n      employeeData.employee\n    );\n\n  if (!employeeName) {\n    continue;\n  }\n\n  // ==========================================\n  // FIND EMPLOYEE SECTION\n  // ==========================================\n\n  let employeeRowIndex = -1;\n  let totalHoursRowIndex = -1;\n\n  for (let i = 0; i < rows.length; i++) {\n\n    const briefing =\n      safeString(\n        rows[i]?.Briefing\n      ).toLowerCase();\n\n    // employee header row\n    if (\n      briefing ===\n      employeeName.toLowerCase()\n    ) {\n\n      employeeRowIndex = i;\n\n      // find next \"Total hours per day\"\n      for (\n        let j = i + 1;\n        j < rows.length;\n        j++\n      ) {\n\n        const nextBriefing =\n          safeString(\n            rows[j]?.Briefing\n          ).toLowerCase();\n\n        if (\n          nextBriefing ===\n          TOTAL_HOURS_LABEL\n        ) {\n\n          totalHoursRowIndex = j;\n          break;\n        }\n      }\n\n      break;\n    }\n  }\n\n  // ==========================================\n  // SKIP INVALID EMPLOYEE SECTION\n  // ==========================================\n\n  if (\n    employeeRowIndex === -1\n  ) {\n\n    results.push({\n\n      employee:\n        employeeName,\n\n      employee_name_row:\n        employeeRowIndex,\n\n      insert_row_number:\n        null,\n\n      error:\n        'Employee section not found'\n\n    });\n\n    continue;\n  }\n\n  // ==========================================\n  // DEFAULT INSERT POSITION\n  // BEFORE TOTAL HOURS ROW\n  // ==========================================\n\n  let insertRowNumber =\n    safeNumber(\n      rows[\n        totalHoursRowIndex-1\n      ]?.row_number\n    );\n\n  // ==========================================\n  // FIND LAST PROJECT ROW\n  // ==========================================\n\n  for (\n    let i = employeeRowIndex + 1;\n    i < totalHoursRowIndex;\n    i++\n  ) {\n\n    const row = rows[i];\n\n    const briefing =\n      safeString(\n        row?.Briefing\n      );\n\n    // skip empty rows\n    if (!briefing) {\n      continue;\n    }\n\n    // skip total row\n    if (\n      briefing.toLowerCase() ===\n      TOTAL_HOURS_LABEL\n    ) {\n      continue;\n    }\n\n    // ======================================\n    // CHECK IF ROW HAS HOURS\n    // ======================================\n\n    let hasHours = false;\n\n    for (const col of dateColumns) {\n\n      const value = row[col];\n\n      if (\n\n        value !== '' &&\n        value !== null &&\n        value !== undefined &&\n        safeNumber(value) > 0\n\n      ) {\n\n        hasHours = true;\n        break;\n      }\n    }\n\n    // ======================================\n    // UPDATE INSERT POSITION\n    // ======================================\n\n    if (hasHours) {\n\n      insertRowNumber =\n        safeNumber(\n          row.row_number\n        ) + 1;\n    }\n  }\n\n  // ==========================================\n  // OUTPUT\n  // ==========================================\n\n  results.push({\n\n    employee:\n      employeeName,\n\n    insert_row_number:\n      insertRowNumber\n\n  });\n}\n\n// ============================================\n// FINAL OUTPUT\n// ============================================\n\nreturn results.map(item => ({\n  json: item\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        656
+      ],
+      "id": "d7c88892-4b8d-4b8c-8842-5d6e20dd9fde",
+      "name": "get new row index",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $('get google spreadSheet').item.json.spreadsheetId }}:batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"requests\": [\n    {\n      \"insertDimension\": {\n        \"range\": {\n          \"sheetId\": {{ $('single worksheet').item.json.properties.sheetId }},\n          \"dimension\": \"ROWS\",\n          \"startIndex\": {{$json.insert_row_number - 1}},\n          \"endIndex\": {{$json.insert_row_number}}\n        },\n        \"inheritFromBefore\": true\n      }\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        656,
+        656
+      ],
+      "id": "f5d153ae-81ab-48b7-a17c-fbd0c7180492",
+      "name": "insert empty row",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $('insert empty row').item.json.spreadsheetId }}/values/'{{ $('single worksheet').item.json.properties.title }}'!A{{ $('update row index').item.json.insert_row_number }}:Z{{ $('update row index').item.json.insert_row_number }}?valueInputOption=USER_ENTERED",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"values\": [\n    {{ JSON.stringify($json.row_values) }}\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1776,
+        656
+      ],
+      "id": "eaf266c7-86fc-4b4b-8bcb-9556ba2ca01c",
+      "name": "insert row values",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// n8n CODE NODE\n// Create Sheet Row Values\n// For ALL Assigned Employees\n// ============================================\n\n// ============================================\n// INPUTS\n// ============================================\n\nconst sheetData =\n  $('Aggregate5')\n    .first()\n    .json\n    .updated_sheet_data || [];\n\nconst employeeFreeHours =\n  $('Aggregate2')\n    .first()\n    .json\n    .employee_free_hour_data || [];\n\nconst projectData =\n  $('Aggregate4')\n    .first()\n    .json\n    .Employees_New_Project_Hours || [];\n\n// ============================================\n// SAFE HELPERS\n// ============================================\n\nfunction safeString(value) {\n\n  if (\n    value === null ||\n    value === undefined\n  ) {\n    return '';\n  }\n\n  return String(value).trim();\n}\n\nfunction safeNumber(value) {\n\n  const num =\n    parseFloat(value);\n\n  return Number.isFinite(num)\n    ? num\n    : 0;\n}\n\nfunction safeArray(value) {\n\n  return Array.isArray(value)\n    ? value\n    : [];\n}\n\n// ============================================\n// FIND DATE HEADER ROW\n// Usually row 8\n// ============================================\n\nlet dateHeaderRow = null;\n\nfor (const row of sheetData) {\n\n  const col3 =\n    row.col_3;\n\n  if (\n\n    col3 !== '' &&\n    col3 !== null &&\n    col3 !== undefined &&\n    !isNaN(Number(col3))\n\n  ) {\n\n    dateHeaderRow = row;\n    break;\n  }\n}\n\nif (!dateHeaderRow) {\n\n  throw new Error(\n    'Date header row not found'\n  );\n}\n\n// ============================================\n// GET ALL DATE COLUMNS\n// ============================================\n\nconst dateColumns = [];\n\nfor (let col = 3; col <= 25; col++) {\n\n  const value =\n    dateHeaderRow[`col_${col}`];\n\n  if (\n\n    value !== '' &&\n    value !== null &&\n    value !== undefined\n\n  ) {\n\n    dateColumns.push({\n\n      colKey:\n        `col_${col}`,\n\n      day:\n        Number(value)\n\n    });\n  }\n}\n\n// ============================================\n// RESULTS\n// ============================================\n\nconst results = [];\n\n// ============================================\n// PROCESS ALL EMPLOYEES\n// ============================================\n\nfor (const project of projectData) {\n\n  // only assigned employees\n  if (\n    project.assigned_to_project !== true\n  ) {\n    continue;\n  }\n\n  const employee =\n    safeString(\n      project.employee\n    );\n\n  if (!employee) {\n    continue;\n  }\n\n  // ==========================================\n  // EMPLOYEE FREE TIME\n  // ==========================================\n\n  const employeeFree =\n    employeeFreeHours.find(\n      emp =>\n        safeString(emp.employee)\n          .toLowerCase()\n        ===\n        employee.toLowerCase()\n    );\n\n  const freeTime =\n    safeArray(\n      employeeFree?.free_time\n    );\n\n  // ==========================================\n  // PROJECT INFO\n  // ==========================================\n\n  const jobNo =\n    safeString(\n      project.job_no\n    );\n\n  const jobDescription =\n    safeString(\n      project.job_description\n    );\n\n  const totalAllocatedHours =\n    safeNumber(\n      project.total_allocated_hours\n    );\n\n  const projectStartDate =\n    safeString(\n      project.project_start_date\n    );\n\n  const projectEndDate =\n    safeString(\n      project.project_end_date\n    );\n\n  const allocations =\n    safeArray(\n      project.allocations\n    );\n\n  // ==========================================\n  // CREATE ALLOCATION MAP\n  // ==========================================\n\n  const allocationMap = {};\n\n  for (const allocation of allocations) {\n\n    const date =\n      safeString(\n        allocation.date\n      );\n\n    allocationMap[date] =\n      safeNumber(\n        allocation.allocated_hours\n      );\n  }\n\n  // ==========================================\n  // CREATE ROW VALUES\n  // ==========================================\n\n  const rowValues = [];\n\n  // Column A → Project Name\n  rowValues.push(\n    `${jobNo} ${jobDescription}`.trim()\n  );\n\n  // Column B → Always \"All\"\n  rowValues.push('All');\n\n  // ==========================================\n  // BUILD DATE COLUMNS\n  // ==========================================\n\n  for (const dateCol of dateColumns) {\n\n    const matchingFreeDay =\n      freeTime.find(day => {\n\n        const dayDate =\n          safeString(day.date);\n\n        // extract numeric day\n        const split =\n          dayDate.split(' ');\n\n        const numericDay =\n          Number(split[1]);\n\n        return (\n          numericDay ===\n          dateCol.day\n        );\n      });\n\n    // no matching date\n    if (!matchingFreeDay) {\n\n      rowValues.push('');\n      continue;\n    }\n\n    const fullDate =\n      safeString(\n        matchingFreeDay.date\n      );\n\n    const allocatedHours =\n      allocationMap[fullDate];\n\n    rowValues.push(\n      allocatedHours || ''\n    );\n  }\n\n  // ==========================================\n  // OUTPUT\n  // ==========================================\n\n  results.push({\n\n    employee,\n\n    total_allocated_hours:\n      totalAllocatedHours,\n\n    project_date_range:\n      `${projectStartDate} to ${projectEndDate}`,\n\n    row_values:\n      rowValues\n\n  });\n}\n\n// ============================================\n// FINAL OUTPUT\n// ============================================\n\nreturn results.map(item => ({\n  json: item\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        656
+      ],
+      "id": "601cdd22-e818-4732-9a78-07da7d4e18f7",
+      "name": "prepare row values"
+    },
+    {
+      "parameters": {
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/108D-wsmCOsfJbtzD00zJbhyG0w7r90MM7V93Su-TykQ",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -224,
+        656
+      ],
+      "id": "b3331b77-6070-410c-81fd-9e5ffa73769e",
+      "name": "get google spreadSheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node\n// Get only the sheet details where title === \"March 26\" (exp)\n\ntry {\n\n  const sheets = $input.first().json.sheets || [];\n\n  const targetSheet = sheets.find(\n    sheet => sheet?.properties?.title === $('Code in JavaScript').first().json.sheet_name\n  );\n\n  if (!targetSheet) {\n    return [\n      {\n        json: {\n          success: false,\n          message: 'Sheet not found'\n        }\n      }\n    ];\n  }\n\n  return [\n    {\n      json: targetSheet\n    }\n  ];\n\n} catch (error) {\n\n  return [\n    {\n      json: {\n        success: false,\n        error: error.message || 'Unknown error'\n      }\n    }\n  ];\n\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        656
+      ],
+      "id": "f5e320eb-72c6-44c8-85e0-5d4e5b552864",
+      "name": "single worksheet"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        832,
+        656
+      ],
+      "id": "c7caaf3a-7919-4ca3-9078-0eed045c1ed1",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "108D-wsmCOsfJbtzD00zJbhyG0w7r90MM7V93Su-TykQ",
+          "mode": "list",
+          "cachedResultName": "Workflow AutomationTesting",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/108D-wsmCOsfJbtzD00zJbhyG0w7r90MM7V93Su-TykQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('single worksheet').item.json.properties.title }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1008,
+        656
+      ],
+      "id": "072396d0-33c2-4b81-9376-10a52a98c343",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "updated_sheet_data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        656
+      ],
+      "id": "60ae7cf5-ca5f-4745-ab40-21383614b528",
+      "name": "Aggregate5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8b2b865e-c34c-47fa-b7af-b1089fd9e800",
+              "leftValue": "={{ $json.conflict }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2000,
+        400
+      ],
+      "id": "7855860a-1217-4d2c-9d7f-d99aadc43d03",
+      "name": "check conflict ?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "950cf754-9b0e-435a-ba32-d5232c8cf939",
+              "leftValue": "={{ $json.assigned_to_project }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        2224,
+        384
+      ],
+      "id": "0e70b5b4-807c-4526-867a-6361082abc89",
+      "name": "filter conflicted emp"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "conflict_data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2432,
+        384
+      ],
+      "id": "5963fe10-6351-4d81-9000-918204b6a5da",
+      "name": "conflict emp data"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an operations coordination assistant.\n\nYour job is to generate:\n\n1. A short professional email subject\n2. A short easy-to-read email body\n\nThe email is sent to the Account Manager when project resource conflicts are detected.\n\nINPUT: {{ JSON.stringify($json.conflict_data) }}\n\nYou will receive JSON data containing:\n\n* employee\n* project info\n* conflict types\n* conflict details\n* allocated/unallocated hours\n* project timeline\n\nRULES:\n\n* Keep the tone professional and simple\n* Keep the body medium-short\n* Do NOT use technical jargon\n* Clearly explain:\n\n  * who has the conflict\n  * what the issue is\n  * why manual review is required\n* Mention project name/job number if available\n* Mention timeline\n* Mention unallocated or overloaded hours\n* End with a simple action request\n\nOUTPUT FORMAT:\nReturn ONLY valid JSON:\n\n{\n\"subject\": \"\",\n\"body\": \"\"\n}\n\nEXAMPLE INPUT:\n{\n\"employee\": \"Cal\",\n\"assigned_to_project\": true,\n\"task_type\": \"ADRI\",\n\"job_no\": \"JBCA0221\",\n\"job_description\": \"Private Digital Ads Rollout for JBC's Messaging Platform\",\n\"total_required_hours\": 34.5,\n\"total_allocated_hours\": 0,\n\"unallocated_hours\": 34.5,\n\"project_start_date\": \"Aug 8\",\n\"project_end_date\": \"Aug 15\",\n\"conflict\": true,\n\"conflict_types\": [\n\"capacity_conflict\"\n],\n\"conflict_details\": [\n{\n\"employee\": \"Cal\",\n\"issue\": \"Insufficient free hours inside timeline\",\n\"required_hours\": 34.5,\n\"allocated_hours\": 0,\n\"unallocated_hours\": 34.5\n}\n]\n}\n\nEXAMPLE OUTPUT:\n{\n\"subject\": \"Resource Conflict Detected – Cal – JBCA0221\",\n\"body\": \"\nHello Account Manager,\n\nA scheduling conflict was detected for Cal on project JBCA0221 (Private Digital Ads Rollout for JBC's Messaging Platform) during Aug 8–Aug 15.\\n\\nThe employee does not have enough available hours within the project timeline. Required hours: 34.5h, Allocated: 0h, Unallocated: 34.5h.\\n\\nThis allocation requires manual review before the project can be scheduled.\"\n}\n\nADDITIONAL RULES:\n\nIf conflict_types includes:\n\n* \"capacity_conflict\"\n  → explain insufficient availability inside timeline\n\n* \"weekly_overload\"\n  → explain employee exceeds weekly workload capacity\n\nIf both conflicts exist:\n→ mention both issues clearly in the body.\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2656,
+        384
+      ],
+      "id": "f98c2d6c-027e-4ec7-82a2-1ad74c2461ba",
+      "name": "Conflict Alert Email",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -4112,
+        720
+      ],
+      "id": "135d3306-2f74-428e-884f-e21d2002ebd2",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1968,
+        656
+      ],
+      "id": "1feb87c3-2383-4b0b-a04a-87113c1b90e6",
+      "name": "Limit1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "8J6zC8CyOcKOPsnC",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/8J6zC8CyOcKOPsnC",
+          "cachedResultName": "08 Team Notification & Account Manager Summary Email"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -560,
+        976
+      ],
+      "id": "b56e7491-3f1a-46f9-af52-515afbd3c2d5",
+      "name": "Call 'Team Notification & Account Manager Summary Email'"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.accountabilityonesystem.com/v1/token",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": " application/json"
+            },
+            {
+              "name": "content-type ",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "password"
+            },
+            {
+              "name": "username",
+              "value": "automates@thecoreagency.com.au"
+            },
+            {
+              "name": "password",
+              "value": "Autom@tes2026!"
+            },
+            {
+              "name": "tenantid",
+              "value": "CI"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -3904,
+        720
+      ],
+      "id": "557e7c2c-f33a-45bf-9db9-622e6f9fd31a",
+      "name": "generate token1",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "estimate_data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -3552,
+        720
+      ],
+      "id": "b96681e9-012f-4273-a53a-69832ec32958",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.accountabilityonesystem.com/v1/TaskTypes",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "Ids",
+              "value": "={{ $json.taskTypeId }}"
+            },
+            {
+              "name": "Limit",
+              "value": "1"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('generate token1').item.json.access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -3360,
+        720
+      ],
+      "id": "8a105fa0-04d5-496e-b97a-815e2a916f5c",
+      "name": "get tasktypes IDs"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "estimate_tasktypes",
+        "include": "specifiedFields",
+        "fieldsToInclude": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -3184,
+        720
+      ],
+      "id": "55dc62cd-9810-465d-9917-e1314849f20a",
+      "name": "Aggregate6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "39871223-e013-4d07-91d2-12f5877d8d72",
+              "name": "estimate_data",
+              "value": "={{ $('When Executed by Another Workflow').item.json.estimate_data }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3728,
+        720
+      ],
+      "id": "c0bf7501-9533-4590-94b1-c5e60a75a410",
+      "name": "estimate"
+    },
+    {
+      "parameters": {
+        "jsCode": "const estimateData =\n  $('estimate').first().json.estimate_data || [];\n\nconst taskTypeGroups =\n  $input.first().json.estimate_tasktypes || [];\n\n// Build taskTypeId -> code map\nconst taskTypeCodeMap = {};\n\nfor (const group of taskTypeGroups) {\n\n  const items = group.data || [];\n\n  for (const task of items) {\n\n    if (task?.id) {\n\n      taskTypeCodeMap[task.id] = task.code || null;\n    }\n  }\n}\n\n// Merge code directly after taskTypeId\nconst updatedEstimateData = estimateData.map(item => {\n\n  const code =\n    taskTypeCodeMap[item.taskTypeId] || null;\n\n  return {\n    id: item.id,\n    estimateId: item.estimateId,\n\n    taskTypeId: item.taskTypeId,\n    code: code,\n\n    description: item.description,\n    chargeTypeId: item.chargeTypeId,\n    employeeId: item.employeeId,\n    internalChargeTypeId: item.internalChargeTypeId,\n    supplierId: item.supplierId,\n    currencyId: item.currencyId,\n    fxRate: item.fxRate,\n    units: item.units,\n    rate: item.rate,\n    markUp: item.markUp,\n    serviceFee: item.serviceFee,\n    taxStatus: item.taxStatus,\n    tax: item.tax,\n    overrideMarkUp: item.overrideMarkUp,\n    notes: item.notes,\n    taskTypeHeadingId: item.taskTypeHeadingId,\n    subTaskTypeHeadingId: item.subTaskTypeHeadingId,\n    lastUpdatedByEmployeeId: item.lastUpdatedByEmployeeId,\n    lastUpdatedAt: item.lastUpdatedAt\n  };\n});\n\nreturn [{\n  json: {\n    estimate_data: updatedEstimateData\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3008,
+        720
+      ],
+      "id": "12203b10-628c-448b-98da-c8ad3dbdedc3",
+      "name": "updated_estimate"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ==========================================\n// n8n CODE NODE\n// Transform Estimate Data Format\n// ==========================================\n\n// INPUT\nconst estimateData =\n$('updated_estimate').first().json.estimate_data  || [];\n\nconst jobNumber =\n  $input.first().json[\"job Number\"] || \"\";\n\nconst jobDescription =\n  $input.first().json[\"job Description\"] || \"\";\n\n// ------------------------------------------\n// HELPERS\n// ------------------------------------------\n\nfunction safeNumber(value) {\n\n  const num = Number(value);\n\n  return Number.isFinite(num)\n    ? num\n    : 0;\n}\n\nfunction formatMoney(value) {\n\n  return safeNumber(value)\n    .toFixed(2);\n}\n\nfunction calculateTotal(item) {\n\n  const units =\n    safeNumber(item.units);\n\n  const rate =\n    safeNumber(item.rate);\n\n  const markUp =\n    safeNumber(item.markUp);\n\n  const serviceFee =\n    safeNumber(item.serviceFee);\n\n  const tax =\n    safeNumber(item.tax);\n\n  return (\n    (units * rate) +\n    markUp +\n    serviceFee +\n    tax\n  );\n}\n\n// ------------------------------------------\n// CHARGE TYPE MAP\n// ------------------------------------------\n\nconst chargeTypeMap = {\n\n  1: 'Time',\n  2: 'Internal',\n  3: 'Time',\n  4: 'Expense'\n};\n\n// ------------------------------------------\n// TRANSFORM\n// ------------------------------------------\n\nconst transformed =\n  estimateData.map(item => {\n\n    return {\n\n      \"Job Number\":\n        jobNumber,\n\n      \"Job Description\":\n        jobDescription,\n\n      \"Task Type ID\":\n        item.taskTypeId || null,\n\n      \"Task Type Code\":\n        item.code || \"\",\n\n      \"Description\":\n        item.description || \"\",\n\n      \"Currency Code\":\n        \"A$\",\n\n      \"Headings Description\":\n        \"\",\n\n      \"Charge Type\":\n        chargeTypeMap[\n          item.chargeTypeId\n        ] || \"\",\n\n      \"Units\":\n        formatMoney(item.units),\n\n      \"Rate\":\n        formatMoney(item.rate),\n\n      \"Mark Ups\":\n        formatMoney(item.markUp),\n\n      \"Service Fee\":\n        safeNumber(item.serviceFee) > 0\n          ? formatMoney(item.serviceFee)\n          : \"\",\n\n      \"Tax\":\n        formatMoney(item.tax),\n\n      \"Estimate Total\":\n        formatMoney(\n          calculateTotal(item)\n        ),\n\n      \"Estimate ID\":\n        item.estimateId || null\n    };\n  });\n\n// ------------------------------------------\n// OUTPUT\n// ------------------------------------------\n\nreturn [{\n  json: {\n    updated_Estimate:\n      transformed\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2432,
+        720
+      ],
+      "id": "b20a9bfb-dead-4454-8a05-ac6d18e22eb2",
+      "name": "transformed estimate"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ==========================================\n// n8n CODE NODE\n// Production Grade Task Type Detector\n// ==========================================\n\n// ------------------------------------------\n// SAFE INPUT EXTRACTION\n// ------------------------------------------\n\nconst incoming =\n  $input.first()?.json?.updated_Estimate;\n\n// ------------------------------------------\n// VALIDATE INPUT\n// ------------------------------------------\n\nif (!Array.isArray(incoming)) {\n\n  return [{\n    json: {\n\n      status: 'invalid_input',\n\n      message:\n        'updated_Estimate must be an array',\n\n      count: 0,\n\n      task_types: []\n    }\n  }];\n}\n\n// ------------------------------------------\n// MASTER WORKFLOW TASK TYPES\n// ------------------------------------------\n\nconst workflowTaskTypes = new Set([\n  'CRPA',\n  'SCOP',\n  'ADRI',\n  'HODE',\n  'SNDE',\n  'EXSD',\n  'MODE',\n  'EXMO',\n  'COPY'\n]);\n\n// ------------------------------------------\n// PROCESS RECORDS\n// ------------------------------------------\n\nconst foundTaskTypes = new Set();\n\nfor (const row of incoming) {\n\n  // skip invalid rows\n  if (\n    !row ||\n    typeof row !== 'object'\n  ) {\n    continue;\n  }\n\n  // normalize code\n  const code =\n    String(\n      row['Task Type Code'] || ''\n    )\n      .trim()\n      .toUpperCase();\n\n  // skip empty\n  if (!code) {\n    continue;\n  }\n\n  // match\n  if (\n    workflowTaskTypes.has(code)\n  ) {\n\n    foundTaskTypes.add(code);\n  }\n}\n\n// ------------------------------------------\n// FINAL OUTPUT\n// ------------------------------------------\n\nconst matched =\n  [...foundTaskTypes];\n\nif (matched.length > 0) {\n\n  return [{\n    json: {\n\n      status:\n        'task type found',\n\n      count:\n        matched.length,\n\n      task_types:\n        matched\n    }\n  }];\n}\n\n// ------------------------------------------\n// NO MATCH FOUND\n// ------------------------------------------\n\nreturn [{\n  json: {\n\n    status:\n      'NO task type found',\n    count: 0\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1376,
+        448
+      ],
+      "id": "2ca58d82-212d-47c8-812d-5e58fd022b9b",
+      "name": "find workflow sheet employee task types"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a8ac9878-e40f-4690-8e0e-459f1f95bd68",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "=task type found",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1200,
+        720
+      ],
+      "id": "26ce5d15-9ca8-45bd-9cf8-ba48977efd93",
+      "name": "Task Type Found ?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "339af09e-853e-4e2a-a9a8-73c4245494b9",
+              "name": "timeline",
+              "value": "={{ $('When Executed by Another Workflow').item.json.project_timeline }}",
+              "type": "string"
+            },
+            {
+              "id": "a40e8988-d2a2-4f10-88d9-9c719e9c4df1",
+              "name": "deadline",
+              "value": "={{ $('When Executed by Another Workflow').item.json.brief_data[0].deadline }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -848,
+        64
+      ],
+      "id": "a96b68b0-d204-4d31-9616-c62fb11668dc",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c7da8903-2d6f-4530-9381-45e223448968",
+              "name": "job_number",
+              "value": "={{ $('When Executed by Another Workflow').item.json.brief_data[0].job_number }}",
+              "type": "string"
+            },
+            {
+              "id": "5f7aba43-9290-4e6d-ba4e-bd0310acb4c6",
+              "name": "client_name",
+              "value": "={{ $('When Executed by Another Workflow').item.json.brief_data[0].client_name }}",
+              "type": "string"
+            },
+            {
+              "id": "4127e197-dd1d-41e6-b4f7-66228aaffff2",
+              "name": "project_description",
+              "value": "={{ $('When Executed by Another Workflow').item.json.brief_data[0].project_description }}",
+              "type": "string"
+            },
+            {
+              "id": "a56d4c78-af96-4a11-92a5-c2a3d10d0100",
+              "name": "Employees_New_Project_Hours",
+              "value": "=[\n{\n\"MESSAGE\":\"NO EMPLOYEE NEW PROJECT HOURS\"\n}\n]",
+              "type": "array"
+            },
+            {
+              "id": "0c00f122-5aec-46d1-a79c-be4084bfb3e6",
+              "name": "client_folder_link",
+              "value": "=https://drive.google.com/drive/folders/{{ $('When Executed by Another Workflow').item.json.client_folder_ID }}",
+              "type": "string"
+            },
+            {
+              "id": "ba0db03d-3ac1-4b44-934e-48923f08293c",
+              "name": "estimate_link",
+              "value": "=https://www.accountabilityonesystem.com/Production/NewEstimateForm.aspx?IDKey={{ $node['When Executed by Another Workflow'].json.estimate_data[0].estimateId }}",
+              "type": "string"
+            },
+            {
+              "id": "bdc258f7-5b19-4341-99ac-017d47ffb95a",
+              "name": "project_timeline",
+              "value": "={{ $('When Executed by Another Workflow').item.json.project_timeline }}",
+              "type": "string"
+            },
+            {
+              "id": "61efd515-38c8-4353-9f27-ee2a3fd432b7",
+              "name": "purchaseOrderIds",
+              "value": "={{ $('When Executed by Another Workflow').item.json.purchaseOrderIds }}",
+              "type": "array"
+            },
+            {
+              "id": "8aae8d4f-b124-46de-ac37-54fe0096537b",
+              "name": "timeline_sheet_id",
+              "value": "={{ $('When Executed by Another Workflow').item.json['Timeline Sheet ID'] }}",
+              "type": "string"
+            },
+            {
+              "id": "e4530f7b-8c58-4ed4-9b67-6844ee9244ab",
+              "name": "production_folder_id",
+              "value": "={{ $('When Executed by Another Workflow').item.json['Production Folder ID'] }}",
+              "type": "string"
+            },
+            {
+              "id": "6a82d61a-72b8-44c8-8b66-163e0060172f",
+              "name": "recipient_email",
+              "value": "={{ $('When Executed by Another Workflow').item.json.recipient_email }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -848,
+        976
+      ],
+      "id": "ec4759e4-fd42-4f3e-b3f0-85b4653d3ae4",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-6",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-6"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an advanced workforce free-capacity calculation and employee availability analysis agent.\n\nYour responsibility is to accurately calculate REAL DAILY FREE WORKING AVAILABILITY for ALL employees/freelancers present in the provided sheet data.\n\nYou specialize in:\n\n* employee availability calculation\n* freelancer capacity tracking\n* workforce scheduling analysis\n* workload aggregation\n* free-time detection\n* operational utilization analysis\n* production resource allocation\n\n━━━━━━━━━━━━━━━━━━━━\nPRIMARY OBJECTIVE\n━━━━━━━━━━━━━━━━━━━━\n\nYour MOST IMPORTANT responsibility is to determine for EVERY employee/freelancer:\n\n* how many hours are already booked each day\n* how many FREE WORKING HOURS remain each day\n* which days are completely free\n* which days are partially available\n* which days are fully booked\n* which days are overbooked\n\nYou must focus mainly on:\nREAL DAILY FREE TIME AVAILABILITY.\n\n━━━━━━━━━━━━━━━━━━━━\nINPUTS\n━━━━━━━━━━━━━━━━━━━━\n\nsheet data:\n{{ JSON.stringify($json.sheet_data) }}\n\n━━━━━━━━━━━━━━━━━━━━\nSHEET STRUCTURE RULES\n━━━━━━━━━━━━━━━━━━━━\n\nIMPORTANT:\n\n* Actual scheduling/project rows START from row number 8 onwards\n* Rows before row 8 contain:\n  * workflow stages information\n  * layout/meta information\n\nYou MUST ignore rows before row 8 for workload calculations.\n\n━━━━━━━━━━━━━━━━━━━━\nDATE COLUMN RULES\n━━━━━━━━━━━━━━━━━━━━\n\nDate row & columns start from:\n\n* row_number 8 onwards\n* col_3 onwards\n\nExample:\n\n* col_3 = first working day/date\n* col_4 = second date\n* col_5 = third date\n* etc.\n\nUse the actual chronological order from the sheet.\n\nDo NOT invent dates.\n\n━━━━━━━━━━━━━━━━━━━━\nDATE INTERPRETATION RULES\n━━━━━━━━━━━━━━━━━━━━\n\nThe sheet already contains the EXACT valid working dates.\n\nYou MUST NEVER generate, recreate, infer, interpolate, or assume missing calendar dates.\n\nYou MUST ONLY use dates that physically exist in the sheet.\n\nIMPORTANT:\n\nDate headers are located in:\nrow 8\nWorking date columns start from:\ncol_3 onwards\nThese dates represent ONLY WORKING DAYS\nWeekends (Saturday/Sunday) are already excluded from the sheet\nSome months may start from:\nthe 1st of the month\nOR a later date\nOR previous month carry-over working dates\n\nExamples:\n\nExample 1 — Aug 24 sheet:\n\ncol_3 = 1\ncol_4 = 2\ncol_5 = 5\ncol_6 = 6\n\nThis means:\n\nAug 3 and Aug 4 DO NOT exist in sheet\nbecause they are weekend/off days\n\nExample 2 — Mar 26 sheet:\n\nsheet may start from Mar 2\nnot Mar 1\n\nThis is VALID and intentional.\n\nCRITICAL RULES:\n\nNEVER generate missing dates\nNEVER assume continuous calendar ranges\nNEVER fill weekend gaps\nNEVER create dates that do not exist in row 8\nNEVER infer Saturdays/Sundays\nNEVER assume col count equals full month dates\nONLY use exact date values found in row 8\nPreserve exact date ordering from the sheet\nUse the sheet dates exactly as provided\n\nThe sheet itself is the ONLY source of truth for valid working dates.\n\nFor every employee calculation:\n\nmap col_3 → actual row 8 col_3 date\nmap col_4 → actual row 8 col_4 date\netc.\n\nDo NOT reinterpret the calendar.\n\n━━━━━━━━━━━━━━━━━━━━\nMONTH INTERPRETATION RULES\n━━━━━━━━━━━━━━━━━━━━\n\nThe sheet belongs to ONE briefing month only.\n\nALL dates belong to:\n{{ $('Code in JavaScript').item.json.month }}\n\nExample:\n\nAug 24 sheet = ALL dates belong to August\nMar 26 sheet = ALL dates belong to March\n\nIMPORTANT:\nDate numbers in row 8 are ONLY day numbers.\n\nExamples:\n\ncol_3 = 1\ncol_4 = 2\ncol_5 = 5\n\nFor an Aug sheet this means:\n\nAug 1\nAug 2\nAug 5\n\nNOT:\n\nJul 1\nJul 2\n\nCRITICAL RULES:\n\nNEVER infer previous months\nNEVER infer next months\nNEVER convert dates to another month\nNEVER generate \"Jul\" if sheet is August\nNEVER generate \"Sep\" if sheet is August\nALL row 8 dates belong to the CURRENT SHEET MONTH\nUse the sheet month consistently for EVERY date column\n\nThe month must come ONLY from the sheet briefing/month context.\n━━━━━━━━━━━━━━━━━━━━\nEMPLOYEE DETECTION RULES\n━━━━━━━━━━━━━━━━━━━━\n\nYou must dynamically detect ALL employees/freelancers from the sheet.\n\nEmployee rows are identified as:\n\n* rows where \"Briefing\" contains employee/freelancer names\n* these rows act as section headers\n* project/job rows appear BELOW employee rows\n* employee section continues until:\n\n  * another employee row appears\n    OR\n  * \"Total hours per day\" row appears\n\nExamples of employee/freelancer rows:\n\nCREATIVE TEAMS:\n\n* Jon & Christian\n* Sarah\n* Cal\n\nDESIGNERS:\n\n* Nick\n* Mavis\n* Dani\n* Freelancer\n\n━━━━━━━━━━━━━━━━━━━━\nPROJECT/JOB ROW RULES\n━━━━━━━━━━━━━━━━━━━━\n\nProject rows are rows BELOW employee rows.\n\nProject rows usually contain:\n\n* job number\n* project description\n* allocated hours in date columns\n\nExamples:\n\n* JBCA0221 Private Digital Ads Rollout\n* QBEP0083 EV - Trade Stand Toolkit\n\nIGNORE these rows:\n\n* employee header rows\n* blank rows\n* separator rows\n* \"Total hours per day\"\n* month/date header rows\n\n━━━━━━━━━━━━━━━━━━━━\nBUSINESS RULES\n━━━━━━━━━━━━━━━━━━━━\n\nSTRICT DAILY LIMIT:\n\nEach employee/freelancer can work a maximum of 8 hours per day.\n\nExamples:\n\n* 0 booked → 8 free hours\n* 1 booked → 7 free hours\n* 2 booked → 6 free hours\n* 4 booked → 4 free hours\n* 7 booked → 1 free hour\n* 8 booked → fully booked\n* 9+ booked → overbooked\n\n━━━━━━━━━━━━━━━━━━━━\nCALCULATION LOGIC\n━━━━━━━━━━━━━━━━━━━━\n\nFOR EACH EMPLOYEE/FREELANCER:\n\n1. Find employee section\n2. Read ALL project/job rows under that employee\n3. Aggregate booked hours across ALL projects\n4. Calculate booked hours PER DAY\n5. Calculate free hours PER DAY\n\nFORMULA:\n\nFREE HOURS =\n8 - TOTAL BOOKED HOURS\n\n━━━━━━━━━━━━━━━━━━━━\nIMPORTANT DATA RULES\n━━━━━━━━━━━━━━━━━━━━\n\n* Blank cells = 0\n* Null values = 0\n* \"-\" = 0\n* Empty strings = 0\n* Correctly handle decimal values\n* Preserve decimals accurately\n* Never hallucinate values\n* Never estimate missing data\n* Only use actual sheet values\n* Preserve chronological order\n* Aggregate hours across ALL jobs for same day\n* Never skip partially booked days\n* Never skip fully booked days\n* Never skip overbooked days\n\n━━━━━━━━━━━━━━━━━━━━\nREQUIRED OUTPUT\n━━━━━━━━━━━━━━━━━━━━\n\nReturn ONLY structured JSON.\n\nDo NOT explain calculations.\nDo NOT provide reasoning.\nDo NOT provide summaries.\nDo NOT provide markdown tables.\nDo NOT provide operational commentary.\n\nOUTPUT FORMAT:\n\n[\n{\n\"employee\": \"Dani\",\n\"free_time\": [\n{\n\"date\": \"Mar 2\",\n\"booked_hours\": 5,\n\"free_hours\": 3\n},\n{\n\"date\": \"Mar 3\",\n\"booked_hours\": 4,\n\"free_hours\": 4\n}\n]\n},\n{\n\"employee\": \"Milton\",\n\"free_time\": [\n{\n\"date\": \"Mar 2\",\n\"booked_hours\": 2,\n\"free_hours\": 6\n}\n]\n}\n]\n\n━━━━━━━━━━━━━━━━━━━━\nCRITICAL REQUIREMENTS\n━━━━━━━━━━━━━━━━━━━━\n\nThe output is considered WRONG if:\n\n* employees are missing\n* freelancers are missing\n* free hours are missing\n* daily calculations are missing\n* hours are not aggregated across jobs\n* wrong dates/month are selected\n* overbooked days are ignored\n* employee sections are mixed together\n* JSON format is not followed\n* explanations are added outside JSON\n\nThe PRIMARY goal is:\n\nREAL DAILY FREE WORKING AVAILABILITY CALCULATION FOR ALL EMPLOYEES/FREELANCERS.\n"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 10000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        192,
+        48
+      ],
+      "id": "3daf0447-3b88-4e33-b2aa-b3477d528c52",
+      "name": "Free Time Analyser Agent1",
+      "retryOnFail": true,
+      "credentials": {
+        "anthropicApi": {
+          "id": "Jg1V1gnBT6Yoq4CM",
+          "name": "Anthropic account"
+        }
+      },
+      "disabled": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://api.accountabilityonesystem.com/v1/Jobs",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "SearchString",
+              "value": "={{ $('When Executed by Another Workflow').item.json.brief_data[0].job_number }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('generate token1').item.json.access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -2832,
+        720
+      ],
+      "id": "5163f4a7-9798-4776-a76f-27c1b23c0e9f",
+      "name": "get job"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6c680ab5-42f7-4e75-8ce7-007e82ee78b0",
+              "name": "job Number",
+              "value": "={{ $json.data[0].jobNumber }}",
+              "type": "string"
+            },
+            {
+              "id": "235a06d6-4ba9-4b32-ab14-0d7186df9770",
+              "name": "job Description",
+              "value": "={{ $json.data[0].description }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2640,
+        720
+      ],
+      "id": "0169c19a-30fa-468a-89e7-43a2e6d00cd1",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a1f39906-7c6a-454e-84df-dc64ee9ce4d1",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -240,
+        64
+      ],
+      "id": "94559680-f4a4-471b-ae2d-1972dd837a2e",
+      "name": "if sheet not found"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b050334b-f273-4e36-8484-2e92ff352f5d",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "108D-wsmCOsfJbtzD00zJbhyG0w7r90MM7V93Su-TykQ",
+          "mode": "list",
+          "cachedResultName": "Workflow AutomationTesting",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/108D-wsmCOsfJbtzD00zJbhyG0w7r90MM7V93Su-TykQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.sheet_name }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -448,
+        64
+      ],
+      "id": "b45bff8f-f9a2-48ee-93a1-37c56fc4cff6",
+      "name": "get workflow sheet",
+      "notesInFlow": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "notes": "{{ $json.sheet_name }}"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "13m2q8DQvPTFcrwsBK0t0xR8loOzrXpLBodzdJW2Qqtk",
+          "mode": "list",
+          "cachedResultName": "Workflow",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13m2q8DQvPTFcrwsBK0t0xR8loOzrXpLBodzdJW2Qqtk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "=May 26",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        848,
+        944
+      ],
+      "id": "da5e6850-629e-4d64-8bd9-2518a12f78a5",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('When Executed by Another Workflow').item.json.recipient_email }}",
+        "subject": "={{ $json.output.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.output.body }}\n\nEmployee Workflow Scheduling Sheet:\nhttps://docs.google.com/spreadsheets/d/108D-wsmCOsfJbtzD00zJbhyG0w7r90MM7V93Su-TykQ\n\nThanks",
+        "options": {
+          "bccList": "chris@automateshub.ai, futuretechdotcodotin@gmail.com, suzy@automateshub.ai"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3040,
+        384
+      ],
+      "id": "fd99657b-2454-4eec-bc39-cb6203ca4f99",
+      "name": "CHRIS: Conflict Email to Account Manager",
+      "webhookId": "6ace1874-f1ae-441d-b9f7-ea25c5f4ae1f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "izehzgOXlpS0M2bx",
+          "name": "CoreAgency Gmail Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Workflow Sheet: \n6 Employee TaskTypes Only\n",
+        "height": 288,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1440,
+        320
+      ],
+      "typeVersion": 1,
+      "id": "4ab68144-ef13-4b98-9001-e6789409dd3c",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// n8n CODE NODE\n// FIND PROJECT INSERT ROW FOR EACH EMPLOYEE\n// ============================================\n\n// SHEET DATA\nconst rows =\n  $('Aggregate5')\n    .first()\n    .json\n    .updated_sheet_data || [];\n\n// EMPLOYEE PROJECT DATA\nconst employeeProjects =\n  $('Aggregate4')\n    .first()\n    .json\n    .Employees_New_Project_Hours || [];\n\n// ============================================\n// HELPERS\n// ============================================\n\nfunction safeString(value) {\n\n  if (\n    value === null ||\n    value === undefined\n  ) {\n    return '';\n  }\n\n  return String(value).trim();\n}\n\nconst TOTAL_LABEL =\n  'total hours per day';\n\n// ============================================\n// RESULTS\n// ============================================\n\nconst results = [];\n\n// ============================================\n// PROCESS EACH EMPLOYEE\n// ============================================\n\nfor (const emp of employeeProjects) {\n\n  // ONLY ASSIGNED EMPLOYEES\n  if (\n    emp.assigned_to_project !== true\n  ) {\n    continue;\n  }\n\n  const employeeName =\n    safeString(emp.employee);\n\n  if (!employeeName) {\n    continue;\n  }\n\n  // ==========================================\n  // FIND EMPLOYEE ROW + TOTAL HOURS ROW\n  // ==========================================\n\n  let employeeRowIndex = -1;\n  let totalHoursRowIndex = -1;\n\n  for (let i = 0; i < rows.length; i++) {\n\n    const briefing =\n      safeString(\n        rows[i].Briefing\n      ).toLowerCase();\n\n    // EMPLOYEE ROW\n    if (\n      briefing ===\n      employeeName.toLowerCase()\n    ) {\n\n      employeeRowIndex = i;\n    }\n\n    // TOTAL HOURS ROW\n    if (\n      briefing === TOTAL_LABEL\n    ) {\n\n      // only take total row AFTER employee row\n      if (\n        employeeRowIndex !== -1 &&\n        i > employeeRowIndex\n      ) {\n\n        totalHoursRowIndex = i;\n        break;\n      }\n    }\n  }\n\n  // ==========================================\n  // SAFETY CHECKS\n  // ==========================================\n\n  if (employeeRowIndex === -1) {\n\n    results.push({\n      employee: employeeName,\n      insert_row_number: null,\n      error: 'Employee row not found'\n    });\n\n    continue;\n  }\n\n  if (totalHoursRowIndex === -1) {\n\n    results.push({\n      employee: employeeName,\n      insert_row_number: null,\n      error: 'Total hours row not found'\n    });\n\n    continue;\n  }\n\n  // ==========================================\n  // FIND LAST PROJECT ROW\n  // ==========================================\n\n  let insertRowNumber =\n    rows[totalHoursRowIndex]\n      .row_number;\n\n  for (\n    let i = employeeRowIndex + 1;\n    i < totalHoursRowIndex;\n    i++\n  ) {\n\n    const row = rows[i];\n\n    const briefing =\n      safeString(row.Briefing);\n\n    // SKIP EMPTY ROWS\n    if (!briefing) {\n      continue;\n    }\n\n    // SKIP TOTAL ROW\n    if (\n      briefing.toLowerCase() ===\n      TOTAL_LABEL\n    ) {\n      continue;\n    }\n\n    // ========================================\n    // DETECT PROJECT HOURS\n    // ========================================\n\n    let hasHours = false;\n\n    for (\n      let col = 3;\n      col <= 24;\n      col++\n    ) {\n\n      const value =\n        row[`col_${col}`];\n\n      if (\n        value !== '' &&\n        value !== null &&\n        value !== undefined &&\n        Number(value) > 0\n      ) {\n\n        hasHours = true;\n        break;\n      }\n    }\n\n    // ========================================\n    // UPDATE INSERT POSITION\n    // ========================================\n\n    if (hasHours) {\n\n      insertRowNumber =\n        row.row_number + 1;\n    }\n  }\n\n  // ==========================================\n  // OUTPUT\n  // ==========================================\n\n  results.push({\n\n    employee: employeeName,\n\n    insert_row_number:\n      insertRowNumber\n\n  });\n}\n\n// ============================================\n// FINAL OUTPUT\n// ============================================\n\nreturn results.map(item => ({\n  json: item\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        656
+      ],
+      "id": "ef0ac9a0-1f9a-4428-bc3d-3fa5f3d56b6a",
+      "name": "update row index"
+    },
+    {
+      "parameters": {
+        "jsCode": "const incoming =\n$('transformed estimate').first().json.updated_Estimate || [];\n\nif (!Array.isArray(incoming)) {\n  return [{\n    json: {\n      status: 'invalid_input',\n      message: 'updated_Estimate must be an array',\n      count: 0,\n      task_types: []\n    }\n  }];\n}\n\nconst workflowTaskTypes = new Set(\n  ($input.first().json.code || [])\n    .map(code =>\n      String(code).trim().toUpperCase()\n    )\n);\n\nconst foundTaskTypes = new Set();\n\nfor (const row of incoming) {\n\n  const code = String(\n    row[\"Task Type Code\"] || \"\"\n  )\n    .trim()\n    .toUpperCase();\n\n  if (!code) continue;\n\n  if (workflowTaskTypes.has(code)) {\n    foundTaskTypes.add(code);\n  }\n}\n\nconst matched = [...foundTaskTypes];\n\nreturn [{\n  json: {\n    status:\n      matched.length > 0\n        ? \"task type found\"\n        : \"NO task type found\",\n\n    count: matched.length,\n\n    task_types: matched\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1408,
+        720
+      ],
+      "id": "694c20ef-1c89-4ef1-86cc-266aea24b1a1",
+      "name": "find workflow sheet employee task types1"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.accountabilityonesystem.com/v1/TaskTypes/{{ $json.defaultTaskTypeId }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": []
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('generate token1').item.json.access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1760,
+        720
+      ],
+      "id": "263659b2-3178-4cbc-8373-2dd7a4725060",
+      "name": "get tasktypes"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "code"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        720
+      ],
+      "id": "78f656ae-0f31-45e5-9cf6-1fd44abb8c18",
+      "name": "workflowTaskTypes"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "89aa9dbc-f8ae-4520-b753-a89ec6a63418",
+              "leftValue": "={{ $json.code }}",
+              "rightValue": "CF",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "7bc82ee2-e02b-41f0-bc3c-c990446973c5",
+              "leftValue": "={{ $json.code }}",
+              "rightValue": "JS",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "1c51d3e2-0894-4430-af4a-3c3627066568",
+              "leftValue": "={{ $json.code }}",
+              "rightValue": "SM",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "d7e441a9-9c4d-48f9-b0fa-c8e7397203d1",
+              "leftValue": "={{ $json.code }}",
+              "rightValue": "CAF",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "ad097ad9-9441-4b71-a8f0-bf1b9c1014de",
+              "leftValue": "={{ $json.code }}",
+              "rightValue": "LS",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "ba90d10a-2e70-4146-b45a-f7ffa0c66757",
+              "leftValue": "={{ $json.code }}",
+              "rightValue": "NW",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "11ef61b3-04f0-4e0d-bdc3-470e68b21a18",
+              "leftValue": "={{ $json.code }}",
+              "rightValue": "DA",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -1920,
+        720
+      ],
+      "id": "a2d60570-6c95-40d6-b12a-c76485b06801",
+      "name": "filter only workflow emp code"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -2080,
+        720
+      ],
+      "id": "41e1c19c-e1e4-4816-a70e-2ba83fca37d4",
+      "name": "split emp"
+    },
+    {
+      "parameters": {
+        "url": "https://api.accountabilityonesystem.com/v1/Employees",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "active",
+              "value": "true"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $node['generate token1'].json.access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -2224,
+        720
+      ],
+      "id": "1f3309e2-8532-4aff-984a-932171ced708",
+      "name": "get all active emp"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fb7bd15f-a802-448f-824c-556db6dfb620",
+              "leftValue": "={{ $json[\"Task Type Code\"] }}",
+              "rightValue": "CRPA",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "2beb999d-539c-4819-b5aa-d7ab791d798f",
+              "leftValue": "={{ $json[\"Task Type Code\"] }}",
+              "rightValue": "SCOP",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "eeb84d40-3e6f-47b2-94e7-84a57f226001",
+              "leftValue": "={{ $json[\"Task Type Code\"] }}",
+              "rightValue": "ADRI ",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "a6a1dec1-2b25-4d33-b201-24544f179562",
+              "leftValue": "={{ $json[\"Task Type Code\"] }}",
+              "rightValue": "HODE",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "b6423390-e577-4436-a2f9-57c031ad6788",
+              "leftValue": "={{ $json[\"Task Type Code\"] }}",
+              "rightValue": "SNDE",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "c02fcbfc-b00f-42b5-aee3-145eea7b7d7a",
+              "leftValue": "={{ $json[\"Task Type Code\"] }}",
+              "rightValue": "COPY",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "1fc19aaf-4047-4070-af3c-14a6da113f80",
+              "leftValue": "={{ $json[\"Task Type Code\"] }}",
+              "rightValue": "MODE",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "0e25b49c-02a0-4486-a426-0a5428f0940e",
+              "leftValue": "={{ $json[\"Task Type Code\"] }}",
+              "rightValue": "EXMO",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -432,
+        416
+      ],
+      "id": "acafc467-4a6e-4009-8c05-f87189a7cd72",
+      "name": "Filter out estimate sheet emp tasktypes"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// n8n CODE NODE\n// Generate Month Start & End Date\n// From sheet_name like: \"June 26\"\n// ============================================\n\n// ============================================\n// INPUT\n// ============================================\n\nconst sheetName =\n  $('Code in JavaScript')\n    .first()\n    .json\n    .sheet_name || '';\n\n// ============================================\n// VALIDATION\n// ============================================\n\nif (\n  !sheetName ||\n  typeof sheetName !== 'string'\n) {\n\n  return [{\n    json: {\n      error: 'sheet_name missing or invalid'\n    }\n  }];\n}\n\n// ============================================\n// PARSE MONTH + YEAR\n// ============================================\n\nconst parts = sheetName.trim().split(' ');\n\nif (parts.length !== 2) {\n\n  return [{\n    json: {\n      error: 'Invalid sheet_name format',\n      expected: 'Month YY',\n      received: sheetName\n    }\n  }];\n}\n\nconst monthName = parts[0];\nconst shortYear = parts[1];\n\n// Convert YY → YYYY\nconst year = Number(`20${shortYear}`);\n\n// Month mapping\nconst months = {\n  january: 0,\n  february: 1,\n  march: 2,\n  april: 3,\n  may: 4,\n  june: 5,\n  july: 6,\n  august: 7,\n  september: 8,\n  october: 9,\n  november: 10,\n  december: 11\n};\n\nconst monthIndex =\n  months[monthName.toLowerCase()];\n\nif (monthIndex === undefined) {\n\n  return [{\n    json: {\n      error: 'Invalid month name',\n      received: monthName\n    }\n  }];\n}\n\n// ============================================\n// CALCULATE DATES\n// ============================================\n\n// First day of month\nconst start = new Date(year, monthIndex, 1);\n\n// Last day of month\nconst end = new Date(year, monthIndex + 1, 0);\n\n// Format YYYY-MM-DD\nconst formatDate = (date) => {\n\n  const y = date.getFullYear();\n\n  const m = String(\n    date.getMonth() + 1\n  ).padStart(2, '0');\n\n  const d = String(\n    date.getDate()\n  ).padStart(2, '0');\n\n  return `${y}-${m}-${d}`;\n};\n\nconst startDate = formatDate(start);\nconst endDate = formatDate(end);\n\n// ============================================\n// CALCULATE DAYS\n// ============================================\n\nconst diffTime =\n  end.getTime() - start.getTime();\n\nconst daysAllocated =\n  Math.floor(\n    diffTime / (1000 * 60 * 60 * 24)\n  ) + 1;\n\n// ============================================\n// OUTPUT\n// ============================================\n\nreturn [{\n  json: {\n    project_timeline: {\n      milestone_name: \"Production\",\n\n      start_date: startDate,\n\n      end_date: endDate,\n\n      days_allocated: daysAllocated\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1536,
+        400
+      ],
+      "id": "b37e320c-996e-4d83-bd51-b1a742c600f4",
+      "name": "project_timeline"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node\n// Get only the sheet details where title === \"March 26\"\n\ntry {\n\n  const sheets = $input.first().json.sheets || [];\n\n  const targetSheet = sheets.find(\n    sheet => sheet?.properties?.title === $('Code in JavaScript').first().json.sheet_name\n  );\n\n  if (!targetSheet) {\n    return [\n      {\n        json: {\n          success: false,\n          message: 'Sheet not found'\n        }\n      }\n    ];\n  }\n\n  return [\n    {\n      json: targetSheet\n    }\n  ];\n\n} catch (error) {\n\n  return [\n    {\n      json: {\n        success: false,\n        error: error.message || 'Unknown error'\n      }\n    }\n  ];\n\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        896
+      ],
+      "id": "b7d13a47-ae63-413f-b315-a81944ccc9d7",
+      "name": "single worksheet1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "108D-wsmCOsfJbtzD00zJbhyG0w7r90MM7V93Su-TykQ",
+          "mode": "list",
+          "cachedResultName": "Workflow AutomationTesting",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/108D-wsmCOsfJbtzD00zJbhyG0w7r90MM7V93Su-TykQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('single worksheet').item.json.properties.title }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        144,
+        656
+      ],
+      "id": "e850eda1-d8a9-474d-bb6e-6ea9586889bc",
+      "name": "Get row(s) in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        320,
+        656
+      ],
+      "id": "e6247861-c7df-414e-9ff5-e37b2ca12942",
+      "name": "Aggregate7"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c7da8903-2d6f-4530-9381-45e223448968",
+              "name": "job_number",
+              "value": "={{ $('When Executed by Another Workflow').item.json.brief_data[0].job_number }}",
+              "type": "string"
+            },
+            {
+              "id": "5f7aba43-9290-4e6d-ba4e-bd0310acb4c6",
+              "name": "client_name",
+              "value": "={{ $('When Executed by Another Workflow').item.json.brief_data[0].client_name }}",
+              "type": "string"
+            },
+            {
+              "id": "4127e197-dd1d-41e6-b4f7-66228aaffff2",
+              "name": "project_description",
+              "value": "={{ $('When Executed by Another Workflow').item.json.brief_data[0].project_description }}",
+              "type": "string"
+            },
+            {
+              "id": "a56d4c78-af96-4a11-92a5-c2a3d10d0100",
+              "name": "Employees_New_Project_Hours",
+              "value": "={{ $('Aggregate4').item.json.Employees_New_Project_Hours }}",
+              "type": "array"
+            },
+            {
+              "id": "f0d0fb31-8c4e-4041-9631-549d2e349749",
+              "name": "client_folder_link ",
+              "value": "=https://drive.google.com/drive/folders/{{ $('When Executed by Another Workflow').item.json.client_folder_ID }}",
+              "type": "string"
+            },
+            {
+              "id": "ba0db03d-3ac1-4b44-934e-48923f08293c",
+              "name": "estimate_link",
+              "value": "=https://www.accountabilityonesystem.com/Production/NewEstimateForm.aspx?IDKey={{ $node['When Executed by Another Workflow'].json.estimate_data[0].estimateId }}",
+              "type": "string"
+            },
+            {
+              "id": "bdc258f7-5b19-4341-99ac-017d47ffb95a",
+              "name": "project_time_line",
+              "value": "={{ $node['When Executed by Another Workflow'].json.project_timeline }}",
+              "type": "string"
+            },
+            {
+              "id": "3045a396-b2ea-4569-ab8d-dd2f013241cc",
+              "name": "purchaseOrderIds",
+              "value": "={{ $node['When Executed by Another Workflow'].json.purchaseOrderIds }}",
+              "type": "array"
+            },
+            {
+              "id": "7db6c2c4-edec-4e26-a06d-8d90b968dd6f",
+              "name": "Production Folder ID",
+              "value": "={{ $('When Executed by Another Workflow').item.json[\"Production Folder ID\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "122ec709-a4ae-4cad-b18b-35a925a5349a",
+              "name": "Timeline Sheet ID",
+              "value": "={{ $('When Executed by Another Workflow').item.json[\"Timeline Sheet ID\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "e8e58328-31a0-495b-8970-203c50ef12bd",
+              "name": "Estimate Folder ID",
+              "value": "={{ $('When Executed by Another Workflow').item.json[\"Estimate Folder ID\"] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2848,
+        992
+      ],
+      "id": "0feb66be-5224-4d74-bd27-b8150db5b63c",
+      "name": "Edit Fields2",
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2176,
+        656
+      ],
+      "id": "e7971481-3c7a-48d5-a2e4-182542967756",
+      "name": "Wait",
+      "webhookId": "b4067952-047b-42da-9609-0027784b7f77"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"subject\": \"\",\n\t\"body\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2832,
+        576
+      ],
+      "id": "5c8a6305-98a4-435a-a231-53fe5f008d6f",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "Claude Haiku 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.5,
+      "position": [
+        2640,
+        576
+      ],
+      "id": "9a39df4e-f558-4da8-a936-493778d21191",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "Jg1V1gnBT6Yoq4CM",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const workflowData =\n  $('When Executed by Another Workflow').first().json;\n\nconst employees =\n  $('Aggregate4').first().json.Employees_New_Project_Hours || [];\n\nreturn [{\n  json: {\n\n    // Basic Details\n    job_number:\n      workflowData.brief_data?.[0]?.job_number || \"\",\n\n    client_name:\n      workflowData.brief_data?.[0]?.client_name || \"\",\n\n    project_description:\n      workflowData.brief_data?.[0]?.project_description || \"\",\n\n\n    purchaseOrderIds:\n      workflowData.purchaseOrderIds || [],\n\n    // IDs\n\n    timeline_sheet_id:\n      workflowData[\"Timeline Sheet ID\"] || \"\",\n\n    production_folder_id:\n      workflowData[\"Production Folder ID\"] || \"\",\n\n    // Useful Links\n    client_folder_link:\n      `https://drive.google.com/drive/folders/${workflowData.client_folder_ID}`,\n\n    estimate_link:\n      `https://www.accountabilityonesystem.com/Production/NewEstimateForm.aspx?IDKey=${workflowData.estimate_data?.[0]?.estimateId || \"\"}`,\n\n    project_timeline:\n      workflowData.project_timeline || [],\n\n    recipient_email:\n      workflowData.recipient_email || [],\n\n    // Employee Schedule (trimmed)\n    Employees_New_Project_Hours:\n      employees.map(emp => ({\n        employee: emp.employee,\n        task_type: emp.task_type,\n        job_no: emp.job_no,\n        total_required_hours: emp.total_required_hours,\n        total_allocated_hours: emp.total_allocated_hours,\n        unallocated_hours: emp.unallocated_hours,\n        project_start_date: emp.project_start_date,\n        project_end_date: emp.project_end_date\n      }))\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2336,
+        656
+      ],
+      "id": "18d382a4-5aa8-484f-abab-b1cef7c003d1",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "8J6zC8CyOcKOPsnC",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/8J6zC8CyOcKOPsnC",
+          "cachedResultName": "08 Team Notification & Account Manager Summary Email"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -3616,
+        976
+      ],
+      "id": "3dd71931-6107-4218-a99a-aa8f65c0b461",
+      "name": "Call 'Team Notification & Account Manager Summary Email'1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a82d61a-72b8-44c8-8b66-163e0060172f",
+              "name": "recipient_email",
+              "value": "={{ $('When Executed by Another Workflow').item.json.recipient_email }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3824,
+        976
+      ],
+      "id": "63e1e739-1724-48f8-af5d-abc61c45a524",
+      "name": "Edit Fields",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const workflowData =\n  $('When Executed by Another Workflow').first().json;\n\n// const employees =\n//   $('Aggregate4').first().json.Employees_New_Project_Hours || [];\n\nreturn [{\n  json: {\n\n    // Basic Details\n    job_number:\n      workflowData.brief_data?.[0]?.job_number || \"\",\n\n    client_name:\n      workflowData.brief_data?.[0]?.client_name || \"\",\n\n    project_description:\n      workflowData.brief_data?.[0]?.project_description || \"\",\n\n\n    purchaseOrderIds:\n      workflowData.purchaseOrderIds || [],\n\n    // IDs\n\n    timeline_sheet_id:\n      workflowData[\"Timeline Sheet ID\"] || \"\",\n\n    production_folder_id:\n      workflowData[\"Production Folder ID\"] || \"\",\n\n    // Useful Links\n    client_folder_link:\n      `https://drive.google.com/drive/folders/${workflowData.client_folder_ID}`,\n\n    estimate_link:\n      `https://www.accountabilityonesystem.com/Production/NewEstimateForm.aspx?IDKey=${workflowData.estimate_data?.[0]?.estimateId || \"\"}`,\n\n    project_timeline:\n      workflowData.project_timeline || [],\n\n    recipient_email:\n      workflowData.recipient_email || [],\n\n    // // Employee Schedule (trimmed)\n    // Employees_New_Project_Hours:\n    //   employees.map(emp => ({\n    //     employee: emp.employee,\n    //     task_type: emp.task_type,\n    //     job_no: emp.job_no,\n    //     total_required_hours: emp.total_required_hours,\n    //     total_allocated_hours: emp.total_allocated_hours,\n    //     unallocated_hours: emp.unallocated_hours,\n    //     project_start_date: emp.project_start_date,\n    //     project_end_date: emp.project_end_date\n    //   }))\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3920,
+        1216
+      ],
+      "id": "c059a24b-dd9a-4197-95be-00b2b8a50f4a",
+      "name": "Code in JavaScript2",
+      "disabled": true
+    }
+  ],
+  "pinData": {
+    "Edit Fields": [
+      {
+        "json": {
+          "recipient_email": "milton@thecoreagency.com.au"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "get workflow sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Filter out estimate sheet emp tasktypes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Free Time Analyser Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Free Time Analyser Agent": {
+      "main": [
+        [
+          {
+            "node": "employee free hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "employee free hours": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "estimate data": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Employee TaskType Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Employee TaskType Data": {
+      "main": [
+        [
+          {
+            "node": "Aggregate3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate3": {
+      "main": [
+        [
+          {
+            "node": "project_timeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New Project Hours": {
+      "main": [
+        [
+          {
+            "node": "check conflict ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate4": {
+      "main": [
+        [
+          {
+            "node": "get google spreadSheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get new row index": {
+      "main": [
+        [
+          {
+            "node": "insert empty row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "insert empty row": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "insert row values": {
+      "main": [
+        [
+          {
+            "node": "Limit1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prepare row values": {
+      "main": [
+        [
+          {
+            "node": "insert row values",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get google spreadSheet": {
+      "main": [
+        [
+          {
+            "node": "single worksheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "single worksheet": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate5": {
+      "main": [
+        [
+          {
+            "node": "update row index",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check conflict ?": {
+      "main": [
+        [
+          {
+            "node": "filter conflicted emp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aggregate4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "filter conflicted emp": {
+      "main": [
+        [
+          {
+            "node": "conflict emp data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "conflict emp data": {
+      "main": [
+        [
+          {
+            "node": "Conflict Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conflict Alert Email": {
+      "main": [
+        [
+          {
+            "node": "CHRIS: Conflict Email to Account Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "generate token1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate token1": {
+      "main": [
+        [
+          {
+            "node": "estimate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "get tasktypes IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get tasktypes IDs": {
+      "main": [
+        [
+          {
+            "node": "Aggregate6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate6": {
+      "main": [
+        [
+          {
+            "node": "updated_estimate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "estimate": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updated_estimate": {
+      "main": [
+        [
+          {
+            "node": "get job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "transformed estimate": {
+      "main": [
+        [
+          {
+            "node": "get all active emp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task Type Found ?": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "estimate data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Call 'Team Notification & Account Manager Summary Email'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get job": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "transformed estimate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if sheet not found": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get workflow sheet": {
+      "main": [
+        [
+          {
+            "node": "if sheet not found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update row index": {
+      "main": [
+        [
+          {
+            "node": "prepare row values",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "find workflow sheet employee task types1": {
+      "main": [
+        [
+          {
+            "node": "Task Type Found ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get tasktypes": {
+      "main": [
+        [
+          {
+            "node": "workflowTaskTypes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "workflowTaskTypes": {
+      "main": [
+        [
+          {
+            "node": "find workflow sheet employee task types1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "filter only workflow emp code": {
+      "main": [
+        [
+          {
+            "node": "get tasktypes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "split emp": {
+      "main": [
+        [
+          {
+            "node": "filter only workflow emp code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get all active emp": {
+      "main": [
+        [
+          {
+            "node": "split emp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter out estimate sheet emp tasktypes": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "project_timeline": {
+      "main": [
+        [
+          {
+            "node": "New Project Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate7": {
+      "main": [
+        [
+          {
+            "node": "get new row index",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Conflict Alert Email",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Conflict Alert Email",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Call 'Team Notification & Account Manager Summary Email'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Call 'Team Notification & Account Manager Summary Email'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "a0a0e6c5-04ec-476f-acf4-e49f00418a77",
+  "meta": {
+    "instanceId": "bbeea15b1024389331eb7374325878e8f2a1f4a74244cd3f4dc2bea8b92be6a4"
+  },
+  "nodeGroups": [],
+  "id": "AyG94uSbt4gj4UtT",
+  "tags": []
+}

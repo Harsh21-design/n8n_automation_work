@@ -1,0 +1,1085 @@
+{
+  "name": "Client Folder-Task Brief-Timeline-Estimate",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $json.job_number }}-{{ $json.project_desc }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $json.client_parent_folder_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -8000,
+        1456
+      ],
+      "id": "cb72c5e2-c6df-46f4-8a9c-27c023d33421",
+      "name": "Create new job folder",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "kRO08VsmP81eTjg8",
+          "name": "futuretech"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8f6247cc-12d3-4d2b-9c00-a67053c0220c",
+              "name": "client_name",
+              "value": "={{ $json.Client }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -8960,
+        1440
+      ],
+      "id": "32625133-7a82-49d1-8bc1-533f52bac26e",
+      "name": "client name"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -9200,
+        1440
+      ],
+      "id": "d0f42f84-f626-47b9-8e23-d59c90706c56",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f47b7687-a1c1-4d3c-8eb9-9e64eed67cf2",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "={{ $('client name').item.json.client_name }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -8400,
+        1264
+      ],
+      "id": "1710f340-6eb9-4f49-a69f-cddcc0f38437",
+      "name": "Filter only parent folder"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "eb6f56eb-7bb5-4d8c-aba7-cecbfb2d9de8",
+              "name": "job_number",
+              "value": "={{ $('When Executed by Another Workflow').item.json['Brief Data'][0].job_number }}",
+              "type": "string"
+            },
+            {
+              "id": "38b2d7b7-da5f-4bb2-b286-bc519e4d3920",
+              "name": "project_desc",
+              "value": "={{ $('When Executed by Another Workflow').item.json['Brief Data'][0].project_description }}",
+              "type": "string"
+            },
+            {
+              "id": "42fc6c6b-821b-464f-9ff6-661931647b42",
+              "name": "client_parent_folder_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -8192,
+        1456
+      ],
+      "id": "647818ee-51e0-4e1c-a276-4faf609828ce",
+      "name": "Job Number"
+    },
+    {
+      "parameters": {
+        "content": "## test folder condition:\n\ntest_automates {{ $('client name').item.json.client_name }}",
+        "height": 336
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -8864,
+        1280
+      ],
+      "typeVersion": 1,
+      "id": "2911a204-c3fd-4aba-ae00-039c828d3d30",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $('client name').item.json.client_name }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Db7Ha4rJhqOQt9PWMrVlRmd7HEGK4b3O",
+          "mode": "list",
+          "cachedResultName": "TEST AUTOMATES - TRACKING FOLDER",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Db7Ha4rJhqOQt9PWMrVlRmd7HEGK4b3O"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -8400,
+        1456
+      ],
+      "id": "c38d52cb-8ee0-4f1d-851a-5f617c6eb20a",
+      "name": "create client parent folder",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "kRO08VsmP81eTjg8",
+          "name": "futuretech"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4bf259ac-d9fd-407c-bb99-60ab1e7ae02e",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -8624,
+        1440
+      ],
+      "id": "11a0c8e3-cb6c-4d5b-91a7-6e08960d7414",
+      "name": "client Exist or NOT ?"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "=name contains '{{ $json.client_name }}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false ",
+        "returnAll": true,
+        "filter": {
+          "driveId": {
+            "__rl": true,
+            "value": "My Drive",
+            "mode": "list",
+            "cachedResultName": "My Drive",
+            "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+          },
+          "folderId": {
+            "__rl": true,
+            "value": "1Db7Ha4rJhqOQt9PWMrVlRmd7HEGK4b3O",
+            "mode": "list",
+            "cachedResultName": "TEST AUTOMATES - TRACKING FOLDER",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1Db7Ha4rJhqOQt9PWMrVlRmd7HEGK4b3O"
+          },
+          "whatToSearch": "folders"
+        },
+        "options": {
+          "fields": [
+            "id",
+            "name",
+            "mimeType"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -8800,
+        1440
+      ],
+      "id": "7703d4f7-8487-467d-8538-fe6adea8dcee",
+      "name": "Search client parent folder (futuretech)1",
+      "executeOnce": false,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "kRO08VsmP81eTjg8",
+          "name": "futuretech"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "04 PRODUCTION",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Create new job folder').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7664,
+        1456
+      ],
+      "id": "f61e4b65-4620-47e4-963a-ef1b0a4619c9",
+      "name": "04 PRODUCTION",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "kRO08VsmP81eTjg8",
+          "name": "futuretech"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "02 BRIEFS",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Create new job folder').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7824,
+        1456
+      ],
+      "id": "008608b8-fb9e-4c9c-badf-ebfddf215cbb",
+      "name": "02 BRIEFS",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "kRO08VsmP81eTjg8",
+          "name": "futuretech"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "={{ $('Job Number').item.json.job_number }}_Task_Brief",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('02 BRIEFS').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7296,
+        1456
+      ],
+      "id": "e8f29247-2dee-4d57-9b86-a5f1d8d39c45",
+      "name": "TRACKING - SOW/TASK BRIEF",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "kRO08VsmP81eTjg8",
+          "name": "futuretech"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('When Executed by Another Workflow').item.json['SOW Doc ID'] }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/vnd.oasis.opendocument.text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7488,
+        1456
+      ],
+      "id": "c542b9ed-742a-4533-91de-b29d721bf0c5",
+      "name": "CORE: Download SOW",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('When Executed by Another Workflow').item.json['Timeline Sheet ID'] }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "sheetsToFormat": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7120,
+        1456
+      ],
+      "id": "e06e36cd-2467-4364-b552-aa4e84436a04",
+      "name": "CORE: Download Timeline",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "={{ $('Job Number').item.json.job_number }}_Timeline",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('04 PRODUCTION').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6912,
+        1456
+      ],
+      "id": "60b6912b-0281-4a5c-a057-2a67d3c8714a",
+      "name": "TRACKING - Timeline",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "kRO08VsmP81eTjg8",
+          "name": "futuretech"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## FUTURE TECH ACCOUNT\n",
+        "height": 80,
+        "width": 448,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -9360,
+        1248
+      ],
+      "typeVersion": 1,
+      "id": "18020653-f43f-451c-8a16-c3042a14379d",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.accountabilityonesystem.com/v1/token",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": " application/json"
+            },
+            {
+              "name": "content-type ",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "password"
+            },
+            {
+              "name": "username",
+              "value": "automates@thecoreagency.com.au"
+            },
+            {
+              "name": "password",
+              "value": "Autom@tes2026!"
+            },
+            {
+              "name": "tenantid",
+              "value": "CI"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -8768,
+        1696
+      ],
+      "id": "1bdb2643-a11f-47f8-bbba-6ceaa5519f91",
+      "name": "generate token",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "url": "=https://api.accountabilityonesystem.com/v1/Estimates/{{ $node['When Executed by Another Workflow'].json['Estimate ID'] }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": " application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $node['generate token'].json.access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -8576,
+        1696
+      ],
+      "id": "06f8dc5f-c89d-4342-937a-9aa626dbf6c5",
+      "name": "retrieve_estimate",
+      "executeOnce": false
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -8736,
+        1984
+      ],
+      "id": "ee3fa906-dc0b-4cf2-9ea3-1966dd806ce9",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "835a9964-0f1b-440d-a3dc-75c1561d8ab2",
+              "leftValue": "={{ $('When Executed by Another Workflow').item.json['Estimate ID']}}",
+              "rightValue": "Not Required",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -8992,
+        1840
+      ],
+      "id": "7cee68b0-d248-43ba-a123-a4639c379e81",
+      "name": "ESTIMATE EXISTS",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "url": "=https://api.accountabilityonesystem.com/v1/TaskTypes/{{ $json.taskTypeId }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "Limit",
+              "value": "1"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('generate token').item.json.access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -8224,
+        1696
+      ],
+      "id": "defe596d-91d1-47bc-a1e2-38bc6b95ac03",
+      "name": "get tasktypes IDs"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "id"
+            },
+            {
+              "fieldToAggregate": "name"
+            },
+            {
+              "fieldToAggregate": "code"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -8048,
+        1696
+      ],
+      "id": "027eae92-81ea-46a1-9b22-79cae2ded36d",
+      "name": "taskypes_ID&Name"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1XP61Yddnjnes5DxtpJZsyq53G13Q10tTZE3yX1TlcRk",
+          "mode": "list",
+          "cachedResultName": "new brief jobs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XP61Yddnjnes5DxtpJZsyq53G13Q10tTZE3yX1TlcRk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 320574333,
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XP61Yddnjnes5DxtpJZsyq53G13Q10tTZE3yX1TlcRk/edit#gid=320574333"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "jobID",
+              "lookupValue": "={{ $('retrieve_estimate').item.json.jobId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -7888,
+        1696
+      ],
+      "id": "fa75b00a-f1db-4365-aafd-3532bc70a955",
+      "name": "get job detail",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "entries",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -8384,
+        1696
+      ],
+      "id": "c34c7e7c-8e0a-4f20-8af8-af2c2d8c8345",
+      "name": "ALL ENTRIES"
+    },
+    {
+      "parameters": {
+        "jsCode": "const estimate = $('retrieve_estimate').first().json;\nconst taskTypeData = $('taskypes_ID&Name').first().json;\n\nconst rawClientName = $input.first().json.clientName || \"\";\nconst jobNumber = $input.first().json.jobNumber || \"\";\nconst jobDescription = $input.first().json.description || \"\";\nconst jobType = $input.first().json.job_type || \"\";\n\n/**\n * Client Format\n * Example:\n * ABCD0001 -> ABCD | Client Name\n */\nconst clientPrefix = String(jobNumber).substring(0, 4);\nconst clientName = `${clientPrefix} | ${rawClientName}`;\n\n/**\n * Helpers\n */\nconst safe = (value, fallback = \"\") => {\n  if (value === null || value === undefined) return fallback;\n\n  return String(value)\n    .replace(/&gt;/g, \">\")\n    .replace(/&lt;/g, \"<\")\n    .replace(/\\r?\\n/g, \" \")\n    .replace(/\\s+/g, \" \")\n    .trim();\n};\n\nconst money = (value) =>\n  Number(value || 0).toFixed(2);\n\n/**\n * Dynamic Task Type Mapping\n */\nconst taskTypeMap = {};\n\n(taskTypeData.id || []).forEach((id, index) => {\n  taskTypeMap[id] = {\n    name: taskTypeData.name?.[index] || \"\",\n    code: taskTypeData.code?.[index] || \"\"\n  };\n});\n\n/**\n * Dynamic Charge Type Mapping\n */\nconst chargeTypeMap = {\n  1: \"Time\",\n  2: \"Fixed\",\n  3: \"Cost\"\n};\n\n/**\n * Build Estimate Entries\n */\nconst entries = [];\n\n(estimate.entries || []).forEach((entry, index) => {\n\n  const units = Number(entry.units || 0);\n  const rate = Number(entry.rate || 0);\n  const tax = Number(entry.tax || 0);\n  const markUp = Number(entry.markUp || 0);\n  const serviceFee = Number(entry.serviceFee || 0);\n\n  const estimateTotal =\n    (units * rate) +\n    tax +\n    markUp +\n    serviceFee;\n\n  const mappedTask =\n    taskTypeMap[entry.taskTypeId] || {};\n\n  entries.push(`\nEstimate Entry ${index + 1}\n\nClient: ${safe(clientName)}\nProduct:\nJob No.: ${safe(jobNumber)}\nJob Description: ${safe(jobDescription)}\nVersion No.: ${money(estimate.version || 0)}\nTitle: ${safe(estimate.title)}\nSuperseded: ${safe(estimate.superseded)}\nDate: ${safe(estimate.date)}\nCurrency Code: A$\nHeadings Description: ${safe(estimate.title)}\nCharge Type: ${\n  chargeTypeMap[entry.chargeTypeId] ||\n  safe(entry.chargeTypeId)\n}\nTask Type Code: ${safe(mappedTask.code)}\nTask Type Name: ${safe(mappedTask.name)}\nDescription: ${safe(entry.description)}\nUnits: ${money(units)}\nRate: ${money(rate)}\nMark Ups: ${money(markUp)}\nService Fee: ${money(serviceFee)}\nTax: ${money(tax)}\nEstimate Total: ${money(estimateTotal)}\nEstimate Notes: ${safe(entry.notes)}\nLine Notes:\n\n--------------------------------------------------\n`.trim());\n\n});\n\n/**\n * Final Page Content\n */\nconst pageContent = entries.join('\\n\\n');\n\n/**\n * Return\n */\nreturn [\n  {\n    json: {\n      job_type: jobType,\n      job_number: jobNumber,\n      client: clientName,\n      pageContent\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -7712,
+        1696
+      ],
+      "id": "5d20cf08-457e-44a0-ad22-04adb8262c73",
+      "name": "transform Entries into Estimate row"
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $json.pageContent }}",
+        "name": "={{ $json.job_number }}_Estimate",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $node['01 FINANCE'].json.id }}",
+          "mode": "id"
+        },
+        "options": {
+          "convertToGoogleDocument": true
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -7520,
+        1696
+      ],
+      "id": "c18014ce-6346-437e-a22d-9437d6602930",
+      "name": "ESTIMATE DOC",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "kRO08VsmP81eTjg8",
+          "name": "futuretech"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "01 FINANCE",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Create new job folder').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -9136,
+        1840
+      ],
+      "id": "fddb28fd-37e6-4f31-9a32-db6a812904c0",
+      "name": "01 FINANCE",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "kRO08VsmP81eTjg8",
+          "name": "futuretech"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Create new job folder": {
+      "main": [
+        [
+          {
+            "node": "02 BRIEFS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "client name": {
+      "main": [
+        [
+          {
+            "node": "Search client parent folder (futuretech)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        []
+      ]
+    },
+    "Filter only parent folder": {
+      "main": [
+        [
+          {
+            "node": "Job Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Job Number": {
+      "main": [
+        [
+          {
+            "node": "Create new job folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create client parent folder": {
+      "main": [
+        [
+          {
+            "node": "Job Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "client Exist or NOT ?": {
+      "main": [
+        [
+          {
+            "node": "Filter only parent folder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "create client parent folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "02 BRIEFS": {
+      "main": [
+        [
+          {
+            "node": "04 PRODUCTION",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "04 PRODUCTION": {
+      "main": [
+        [
+          {
+            "node": "CORE: Download SOW",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CORE: Download SOW": {
+      "main": [
+        [
+          {
+            "node": "TRACKING - SOW/TASK BRIEF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TRACKING - SOW/TASK BRIEF": {
+      "main": [
+        [
+          {
+            "node": "CORE: Download Timeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search client parent folder (futuretech)1": {
+      "main": [
+        [
+          {
+            "node": "client Exist or NOT ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CORE: Download Timeline": {
+      "main": [
+        [
+          {
+            "node": "TRACKING - Timeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TRACKING - Timeline": {
+      "main": [
+        [
+          {
+            "node": "01 FINANCE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate token": {
+      "main": [
+        [
+          {
+            "node": "retrieve_estimate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ESTIMATE EXISTS": {
+      "main": [
+        [
+          {
+            "node": "generate token",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get tasktypes IDs": {
+      "main": [
+        [
+          {
+            "node": "taskypes_ID&Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "taskypes_ID&Name": {
+      "main": [
+        [
+          {
+            "node": "get job detail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get job detail": {
+      "main": [
+        [
+          {
+            "node": "transform Entries into Estimate row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ALL ENTRIES": {
+      "main": [
+        [
+          {
+            "node": "get tasktypes IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "retrieve_estimate": {
+      "main": [
+        [
+          {
+            "node": "ALL ENTRIES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "transform Entries into Estimate row": {
+      "main": [
+        [
+          {
+            "node": "ESTIMATE DOC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "01 FINANCE": {
+      "main": [
+        [
+          {
+            "node": "ESTIMATE EXISTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "5f581562-0487-49b7-acf8-dccfbda1ac50",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bbeea15b1024389331eb7374325878e8f2a1f4a74244cd3f4dc2bea8b92be6a4"
+  },
+  "nodeGroups": [],
+  "id": "QYJrv94Rq7REluHm",
+  "tags": []
+}

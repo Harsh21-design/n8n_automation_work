@@ -1,0 +1,1493 @@
+{
+  "name": "08 Team Notification & Account Manager Summary Email",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1536,
+        0
+      ],
+      "id": "3f276d10-4b41-48f9-ba80-41575a2d2a35",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "content": "## Team Emails\nJON: jon@thecoreagency.com.au\nChristian: christian@thecoreagency.com.au\nCal: callum@thecoreagency.com.au\nSarah: sarah@thecoreagency.com.au\nNick: nick@thecoreagency.com.au\nMavis: mavis@thecoreagency.com.au\nDani: daniella@thecoreagency.com.au\nLauren: lauren@thecoreagency.com.au",
+        "height": 416,
+        "width": 384,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        320,
+        -1952
+      ],
+      "typeVersion": 1,
+      "id": "e8eeee12-264b-4f15-bfef-2617426acfdb",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "Claude Haiku 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.5,
+      "position": [
+        -32,
+        -16
+      ],
+      "id": "d9e4eea1-4c57-4a51-82da-228b71d9f23a",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "Jg1V1gnBT6Yoq4CM",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// n8n CODE NODE\n// Parse AI Agent Email JSON Output\n// Handles:\n// 1. Valid JSON array\n// 2. Markdown wrapped JSON\n// 3. \"NO EMPLOYEE SHCEDULING ALLOCATION\"\n// ============================================\n\n// ============================================\n// INPUT\n// ============================================\n\nconst rawOutput =\n  $input.first()?.json?.output || '';\n\n// ============================================\n// HELPERS\n// ============================================\n\nfunction safeString(value) {\n\n  if (\n    value === null ||\n    value === undefined\n  ) {\n    return '';\n  }\n\n  return String(value).trim();\n}\n\nfunction cleanJsonString(str) {\n\n  return str\n    .replace(/```json/gi, '')\n    .replace(/```/g, '')\n    .trim();\n}\n\n// ============================================\n// CLEAN INPUT\n// ============================================\n\nconst cleanedOutput =\n  cleanJsonString(\n    safeString(rawOutput)\n  );\n\n// ============================================\n// HANDLE:\n// NO EMPLOYEE SHCEDULING ALLOCATION\n// ============================================\n\nif (\n  cleanedOutput ===\n  'NO EMPLOYEE SHCEDULING ALLOCATION'\n) {\n\n  return [\n    {\n      json: {\n\n        success: true,\n\n        no_employee_allocation: true,\n\n        message:\n          'NO EMPLOYEE SCHEDULING ALLOCATION'\n      }\n    }\n  ];\n}\n\n// ============================================\n// PARSE JSON\n// ============================================\n\nlet parsed = [];\n\ntry {\n\n  parsed =\n    JSON.parse(cleanedOutput);\n\n} catch (error) {\n\n  return [\n    {\n      json: {\n\n        success: false,\n\n        message:\n          'Failed to parse AI output',\n\n        error:\n          error.message,\n\n        raw_output:\n          rawOutput\n      }\n    }\n  ];\n}\n\n// ============================================\n// VALIDATE ARRAY\n// ============================================\n\nif (!Array.isArray(parsed)) {\n\n  return [\n    {\n      json: {\n\n        success: false,\n\n        message:\n          'Parsed output is not an array',\n\n        parsed_output:\n          parsed\n      }\n    }\n  ];\n}\n\n// ============================================\n// OUTPUT\n// ============================================\n\nreturn parsed.map(item => ({\n\n  json: {\n\n    success: true,\n\n    no_employee_allocation: false,\n\n    employee_name:\n      item.employee_name || '',\n\n    employee_email:\n      item.employee_email || '',\n\n    subject:\n      item.subject || '',\n\n    body:\n      item.body || ''\n\n  }\n\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        -160
+      ],
+      "id": "41c6ec1a-494e-466d-b5a3-e643e302068e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "content": "## Senior Account Manager\n\n Email: milton@thecoreagency.com.au",
+        "width": 272,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2080,
+        -496
+      ],
+      "typeVersion": 1,
+      "id": "9e956407-fd18-42b1-823e-6e2ea73a88dd",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        -176
+      ],
+      "id": "a4103b8e-fb98-44bf-bda3-cbe0603ad24a",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"subject\": \"\",\n\t\"body\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1856,
+        0
+      ],
+      "id": "e499a1dc-a428-443e-be13-23191ebd74e0",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "Claude Haiku 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.5,
+      "position": [
+        1648,
+        0
+      ],
+      "id": "0b476edf-58fb-4bfe-a464-092e31f4441b",
+      "name": "Anthropic Chat Model1",
+      "credentials": {
+        "anthropicApi": {
+          "id": "Jg1V1gnBT6Yoq4CM",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an operations workflow assistant.\n\nYour job is to generate personalized team allocation notification emails.\n\nThe email is sent to each allocated team member(single person) after project allocation has been completed successfully.\n\nALL INPUT DATA:\n\nJob Number:\n{{ $json.job_number }}\n\nClient Name:\n{{ $json.client_name }}\n\nProject Description:\n{{ $json.project_description }}\n\nAllocated Employee, Hours & Key Dates:\n{{ JSON.stringify($json.Employees_New_Project_Hours) }}\n\n\nEmployee Emails: [{{ $json.emails }}]\n\nRULES:\n\n- Generate ONE email per allocated employee only [Jon & Christian Work together but generate their single emails like other single employees]\n- Skip employees where:\n  - assigned_to_project = false\n  - total_allocated_hours = 0\n- Match employee names to their email addresses\n- Keep tone professional, concise, and operational\n- Keep body medium-short and easy to scan\n- Mention:\n  - employee allocation confirmation\n  - job number\n  - client name\n  - project description\n  - allocated hours\n  - key allocation dates\n  - task type\n- Do NOT explain automation/system logic\n- Do NOT generate overly formal emails\n- Do NOT generate emails for unallocated employees\n\nIMPORTANT CONDITION:\n\n- Before generating emails, first check whether ANY employees are actually allocated.\n- If ALL employees:\n  - have assigned_to_project = false\n  OR\n  - total_allocated_hours = 0\n  OR\n  - allocation data is empty/null\nTHEN output ONLY this exact text:\n\nNO EMPLOYEE SHCEDULING ALLOCATION\n\n- In this case:\n  - Do NOT generate JSON\n  - Do NOT generate explanations\n  - Do NOT generate empty arrays\n  - Output ONLY:\n    NO EMPLOYEE SHCEDULING ALLOCATION\n\nEMAIL BODY FORMAT EXAMPLE:\n\"\nHi Jon,\n\nYou've been allocated to the following project:\n\nJob Number: JBCA0221\\n\nClient: Just Better Care Australia Pty Ltd\\n\nProject: Private Digital Ads Rollout for JBC's Messaging Platform across multiple digital channels targeting affluent baby boomers and adult children support networks.\n\nAllocation Details:\n- Task Type: CRPA\n- Total Allocated Hours: 5.5 hours\n- Project Duration: Aug 8 – Aug 15\n- Key Dates:\n  - Aug 8: 2 hours allocated\n  - Aug 9: 3.5 hours allocated\n\"\n\nOUTPUT FORMAT:\n-> Do not put any '*' or other symbols. \nReturn ONLY valid JSON array when employees are allocated.\n\n[\n  {\n    \"employee_name\": \"\",\n    \"employee_email\": \"\",\n    \"subject\": \"\",\n    \"body\": \"\"\n  }\n]",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -48,
+        -160
+      ],
+      "id": "a0614a4e-3163-43a2-bd6d-bedd66a02b99",
+      "name": "Notify Team",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an operations workflow assistant.\n\nYour task is to generate a concise workflow completion notification email for the Account Manager after project automation has completed successfully.\n\n════════════════════════════════════════════\nAccount Manager Mapping\n════════════════════════════════════════════\nDetermine the Account Manager's name from the recipient email.\n\nEmail\t                        Account Manager\n\njoseph@thecoreagency.com.au\t->  Joseph Rosslind\nmilton@thecoreagency.com.au\t->  Milton Kim\njen@thecoreagency.com.au\t->  Jen Hird\n\nRecipient Email:\n{{ $('When Executed by Another Workflow').item.json.recipient_email }}\n\nIf the email does not match any of the above, use \"Account Manager\".\n════════════════════════════════════════════\nINPUT DATA\n════════════════════════════════════════════\n\nJob Number:\n{{ $('When Executed by Another Workflow').item.json.job_number }}\n\nClient Name:\n{{ $('When Executed by Another Workflow').item.json.client_name }}\n\nProject Description:\n{{ $('When Executed by Another Workflow').item.json.project_description }}\n\nEstimate Link:\n{{ $('When Executed by Another Workflow').item.json.estimate_link }}\n\nClient Folder Link:\n{{ $('Edit Fields1').item.json['client_folder_link '] }}\n\nPO Details For Suppliers:\n{{ JSON.stringify($('When Executed by Another Workflow').item.json.purchaseOrderIds) }}\n\nProject Production Timeline:\n[{{ $('Edit Fields1').item.json.project_time_line }}]\n\nTeam Notification Detail:\n[{{ JSON.stringify($('Edit Fields1').item.json.Employees_New_Project_Hours) }}]\n\nEmployee Workflow Sheet Link:\nhttps://docs.google.com/spreadsheets/d/108D-wsmCOsfJbtzD00zJbhyG0w7r90MM7V93Su-TykQ\n\n════════════════════════════════════════════\nRULES\n════════════════════════════════════════════\n\nGenerate:\n\n1. Email subject\n2. Concise workflow completion email body\n\nTone:\n- Professional\n- Operational\n- Concise\n- Easy to scan\n\nDo NOT:\n- Explain automation logic\n- Ask for approvals\n- Add unnecessary wording\n- Mention system/internal processing details\n- Generate long paragraphs\n\n════════════════════════════════════════════\nPO SUMMARY RULES\n════════════════════════════════════════════\n\nIf supplier PO details exist:\n- Include a short PO summary section\n- Mention generated PO IDs briefly\n\nIf no supplier PO details exist:\n- Completely omit the PO Summary section\n\n════════════════════════════════════════════\nTIMELINE SUMMARY RULES\n════════════════════════════════════════════\n\nGenerate a SHORT readable summary using:\n- production start\n- key milestones\n- final delivery deadline\n\nKeep timeline summary concise.\n\n════════════════════════════════════════════\nEMAIL STRUCTURE\n════════════════════════════════════════════\n\nSubject Example:\nWorkflow Completed — {{ $('When Executed by Another Workflow').item.json.client_name }} ({{ $('When Executed by Another Workflow').item.json.job_number }})\n\nBody Example:\n\nHello Account Manager,\n\nThe project workflow automation has completed successfully for:\n\nJob Number: [JOB NUMBER]\nClient: [CLIENT NAME]\n\nProject Summary:\n[SHORT PROJECT DESCRIPTION]\n\nWorkflow Completion Summary:\n\n• Estimate created/updated\n• SOW generated\n• Project timeline generated\n• Client folder updated\n• Team allocation notifications sent(only if employee allocation present)\n• Supplier POs generated (only if applicable)\n• Workflow processing completed\n\nResources:\n\n• Estimate:\n[ESTIMATE LINK]\n\n• Client Folder:\n[CLIENT FOLDER LINK]\n\n(Optional PO Summary Section)\n\nTimeline Overview:\n[SHORT TIMELINE SUMMARY]\n\nEmployee Workflow Scheduling Sheet:\nhttps://docs.google.com/spreadsheets/d/108D-wsmCOsfJbtzD00zJbhyG0w7r90MM7V93Su-TykQ\n\nThanks\n\n════════════════════════════════════════════\nOUTPUT FORMAT\n════════════════════════════════════════════\n\nReturn ONLY valid JSON.\n\n{\n  \"subject\": \"\",\n  \"body\": \"\"\n}\n\n════════════════════════════════════════════\nIMPORTANT\n════════════════════════════════════════════\n\n- Return ONLY JSON\n- No markdown\n- No code blocks\n- No explanations\n- Ensure body formatting is email-friendly\n- Keep the email concise and operational",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1680,
+        -176
+      ],
+      "id": "0d85e01d-4536-48b4-bb39-012c9e1f056a",
+      "name": "Account Manager Summary Email",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.employee_email }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        -1568
+      ],
+      "id": "ddd79d20-483b-4ae2-bad1-a5490da7132d",
+      "name": "Team Notification1",
+      "webhookId": "c074809f-85ab-40e2-8925-4c4c0eab0027",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "izehzgOXlpS0M2bx",
+          "name": "CoreAgency Gmail Connection"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('When Executed by Another Workflow').item.json.recipient_email }}",
+        "subject": "={{ $json.output.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.output.body }}",
+        "options": {
+          "bccList": "chris@automateshub.ai, futuretechdotcodotin@gmail.com, suzy@automateshub.ai"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2112,
+        -176
+      ],
+      "id": "75d4d2a5-836c-4614-874a-a4a04ec8eba9",
+      "name": "chris: Summary Email to Account Manager",
+      "webhookId": "6ace1874-f1ae-441d-b9f7-ea25c5f4ae1f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "izehzgOXlpS0M2bx",
+          "name": "CoreAgency Gmail Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Code in JavaScript').item.json.employee_email }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.data }}\n<ul>\n<li>Client Folder: {{ $('Edit Fields1').item.json['client_folder_link '] }}</li>\n</ul>\n<p>Please review the details and let us know if you have any questions.</p>",
+        "options": {
+          "bccList": "chris@automateshub.ai, futuretechdotcodotin@gmail.com, suzy@automateshub.ai"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        688,
+        368
+      ],
+      "id": "7fd82b42-ac29-4489-8a4c-39d77ed68754",
+      "name": "Chris: Team Notification",
+      "webhookId": "c074809f-85ab-40e2-8925-4c4c0eab0027",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "izehzgOXlpS0M2bx",
+          "name": "CoreAgency Gmail Connection"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        656,
+        112
+      ],
+      "id": "7b48cd64-dbf4-49ad-9b2f-b9687d3810e2",
+      "name": "Markdown"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c693b76e-5f5d-4726-ad51-f2f1e9307e71",
+              "leftValue": "={{ $json.no_employee_allocation }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        -160
+      ],
+      "id": "e431bff1-9eb1-4782-925c-bfe018a99892",
+      "name": "NO Workflow Allocation ?"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are an Account Manager email assistant.\n\nYour task is to generate a professional client delivery email for a project package.\n\nINPUTS\n\nJob Number:\n{{ $json['Brief Data'][0].job_number }}\nClient Name:\n{{ $json['Brief Data'][0].client_name }}\nProject Type:\n{{ $json['Brief Data'][0].project_type }}\nProject Description:\n{{ $json['Brief Data'][0].project_description }}\nValue Proposition:\n{{ $json['Brief Data'][0].proposition }}\nTask: {{ JSON.stringify($json['Brief Data'][0].task) }}\n\n════════════════════════════════════════════\nEMAIL OBJECTIVE\n════════════════════════════════════════════\n\nGenerate a concise client-facing email that:\n\n- References the project and client\n- Provides a short project summary using the Project Description\n- Briefly references the Value Proposition where relevant\n- Advises that the project timeline PDF is attached\n- Requests client review and approval to proceed\n- Maintains a professional, friendly, and concise tone\n- Sounds like it was written by the Account Manager\n- Avoids overly formal or lengthy language\n\n════════════════════════════════════════════\nSUBJECT GUIDELINES\n════════════════════════════════════════════\n\nUse a subject similar to:\n\nProject Timeline & Approval Request – {Client Name}\n\nor\n\nProject Delivery Package – {Client Name}\n\n════════════════════════════════════════════\nBODY GUIDELINES\n════════════════════════════════════════════\n\nStructure:\n\nHi [Client Name],\n\nThank you for the opportunity to support this project.\n\n[Short project summary based on Project Description.]\n\n[one/two-sentence reference to the project value proposition/tasks if provided.]\n\nPlease find the Project Timeline attached and Accountability Estimate link for your review.\n\nEstimate: https://www.accountabilityonesystem.com/Production/NewEstimateForm.aspx?IDKey={{ $('Get row(s) in sheet').item.json['Estimate ID'] }}\n\nWe look forward to your feedback.\n\nKind regards\nThe Core Agency\n════════════════════════════════════════════\nOUTPUT FORMAT\n════════════════════════════════════════════\n\nReturn ONLY valid JSON.\n\n{\n  \"subject\": \"\",\n  \"body\": \"\"\n}\n\n════════════════════════════════════════════\nIMPORTANT\n════════════════════════════════════════════\n\n- Return ONLY JSON\n- No markdown\n- No code blocks\n- No explanations\n- Keep the email concise\n- Keep the tone professional and client-friendly\n- Mention the attached project timeline PDF\n- Include a clear approval request"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_schema",
+              "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"subject\": {\n      \"type\": \"string\"\n    },\n    \"body\": {\n      \"type\": \"string\"\n    }\n  },\n  \"additionalProperties\": false,\n  \"required\": [\"subject\",\"body\"]\n}"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        2736,
+        -176
+      ],
+      "id": "dc44cb94-f56b-4d3b-80d6-f2de879a7057",
+      "name": "Client Delivery Email",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "v1DQHKLXrdQIocpO",
+          "name": "OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $('Get row(s) in sheet').item.json['Timeline Sheet ID'] }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3008,
+        -176
+      ],
+      "id": "f2bfe2af-835f-4f63-8131-4ef8ed992a8c",
+      "name": "get timeline sheet",
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "options": {
+          "binaryPropertyName": "={{ $json.properties.title }}",
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/pdf",
+              "drawingsToFormat": "application/pdf",
+              "slidesToFormat": "application/pdf",
+              "sheetsToFormat": "application/pdf"
+            }
+          },
+          "fileName": "={{ $json.properties.title }}.pdf"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3216,
+        -176
+      ],
+      "id": "aa25329a-9c4a-44dd-9abf-2eef58935353",
+      "name": "Convert Sheet into PDF",
+      "retryOnFail": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "futuretechdotcodotin@gmail.com",
+        "subject": "={{ $('Client Delivery Email').item.json.output[0].content[0].text.subject }}",
+        "emailType": "text",
+        "message": "={{ $('Client Delivery Email').item.json.output[0].content[0].text.body }}",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "={{ $('Convert Sheet into PDF').item.json.properties.title }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3584,
+        176
+      ],
+      "id": "7cb47372-11f2-40f3-aae5-88fc9c9411dd",
+      "name": "future tech",
+      "webhookId": "b6d0c452-5716-4e32-baae-e3b37a627924",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "HLBSVpFdRsoALdDe",
+          "name": "FUTURETECH GMAIL ACCOUNT"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "sendTo": "automates@thecoreagency.com.au",
+        "subject": "={{ $node['Client Delivery Email'].json.output[0].content[0].text.subject }}",
+        "emailType": "text",
+        "message": "={{ $node['Client Delivery Email'].json.output[0].content[0].text.body }}",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "={{ $('Convert Sheet into PDF').item.json.properties.title }}"
+              }
+            ]
+          },
+          "bccList": "chris@automateshub.ai, futuretechdotcodotin@gmail.com, suzy@automateshub.ai"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3472,
+        -176
+      ],
+      "id": "ff85719e-b57e-49eb-85c2-9ab3cf9202b0",
+      "name": "chris: client package delivery",
+      "webhookId": "b6d0c452-5716-4e32-baae-e3b37a627924",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "izehzgOXlpS0M2bx",
+          "name": "CoreAgency Gmail Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Email for Client:\nautomates@thecoreagency.com.au",
+        "height": 240,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3392,
+        -288
+      ],
+      "typeVersion": 1,
+      "id": "17b386b8-293d-4f1a-90e3-d70fd2288b49",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "={{ $json.properties.title }}",
+        "name": "={{ $json.properties.title }}",
+        "driveId": {
+          "__rl": true,
+          "value": "0AIooQ6BEfRXVUk9PVA",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/0AIooQ6BEfRXVUk9PVA"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Get row(s) in sheet').item.json['Production Folder ID'] }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3456,
+        32
+      ],
+      "id": "e1452364-afd1-4d34-b09b-f6a4f52520e2",
+      "name": "Upload(Save) Sheet PDF in Production Folder",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "yU6JVauox0TUw3Zj",
+          "name": "Core Google Drive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## CLIENT PACKAGE DELIVERY EMAIL \n## (PDF OF TIMELINE  SHEET & ESTIMATE LINK)",
+        "height": 496,
+        "width": 1156,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2704,
+        -320
+      ],
+      "typeVersion": 1,
+      "id": "b18c61f2-29f5-4c48-9c0f-a35b81694425",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Koiz7pNQ4_dDoN97fHC1_oDLiVsQJdRBH5fx8GPdCcs",
+          "mode": "list",
+          "cachedResultName": "Client Approval Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Koiz7pNQ4_dDoN97fHC1_oDLiVsQJdRBH5fx8GPdCcs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2085949677,
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Koiz7pNQ4_dDoN97fHC1_oDLiVsQJdRBH5fx8GPdCcs/edit#gid=2085949677"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Client",
+              "lookupValue": "={{ $('When Executed by Another Workflow').item.json.client_name }}"
+            },
+            {
+              "lookupColumn": "Job Number",
+              "lookupValue": "={{ $('When Executed by Another Workflow').item.json.job_number }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2352,
+        -176
+      ],
+      "id": "75f1a30b-353b-476b-97ba-e07054a5ed50",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QUhwhs3BsftlpzqV",
+          "name": "CoreAgency Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "20a9049a-d866-411f-830b-ae141d6ce920",
+              "name": "Brief Data",
+              "value": "={{ $json['Brief Data'] }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2560,
+        -176
+      ],
+      "id": "8a0b078a-5973-4e54-adc9-4bf12954fd52",
+      "name": "Brief Data"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "07e4204e-391b-43b1-b824-770c0873bfa3",
+              "name": "Estimate ID",
+              "value": "={{ $('Get row(s) in sheet').item.json['Estimate ID'] }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3680,
+        -176
+      ],
+      "id": "7758858c-c0ab-4bf9-bc92-9dafbe45d20a",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "M4sMsnUFCmrSA0EP",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/M4sMsnUFCmrSA0EP",
+          "cachedResultName": "09 Continous Learning"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3856,
+        -176
+      ],
+      "id": "71ea066f-e45a-4bc8-8eb6-b992bc9fa5fd",
+      "name": "Call '09 Continous Learning'"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an operations workflow assistant.\n\nYour job is to generate personalized team allocation notification emails.\n\nThe email is sent to each allocated team member(single person) after project allocation has been completed successfully.\n\nALL INPUT DATA:\n\nJob Number:\n{{ $json.job_number }}\n\nClient Name:\n{{ $json.client_name }}\n\nProject Description:\n{{ $json.project_description }}\n\nAllocated Employee, Hours & Key Dates:\n{{ JSON.stringify($json.Employees_New_Project_Hours) }}\n\n\nEmployee Emails:\n\nJON: jon@thecoreagency.com.au\nChristian: christian@thecoreagency.com.au\nCal: callum@thecoreagency.com.au\nSarah: sarah@thecoreagency.com.au\nNick: nick@thecoreagency.com.au\nMavis: mavis@thecoreagency.com.au\nDani: daniella@thecoreagency.com.au\n\nRULES:\n\n- Generate ONE email per allocated employee only [Jon & Christian Work together but generate their single emails like other single employees]\n- Skip employees where:\n  - assigned_to_project = false\n  - total_allocated_hours = 0\n- Match employee names to their email addresses\n- Keep tone professional, concise, and operational\n- Keep body medium-short and easy to scan\n- Mention:\n  - employee allocation confirmation\n  - job number\n  - client name\n  - project description\n  - allocated hours\n  - key allocation dates\n  - task type\n- Do NOT explain automation/system logic\n- Do NOT generate overly formal emails\n- Do NOT generate emails for unallocated employees\n\nIMPORTANT CONDITION:\n\n- Before generating emails, first check whether ANY employees are actually allocated.\n- If ALL employees:\n  - have assigned_to_project = false\n  OR\n  - total_allocated_hours = 0\n  OR\n  - allocation data is empty/null\nTHEN output ONLY this exact text:\n\nNO EMPLOYEE SHCEDULING ALLOCATION\n\n- In this case:\n  - Do NOT generate JSON\n  - Do NOT generate explanations\n  - Do NOT generate empty arrays\n  - Output ONLY:\n    NO EMPLOYEE SHCEDULING ALLOCATION\n\nEMAIL BODY FORMAT EXAMPLE:\n\"\nHi Jon,\n\nYou've been allocated to the following project:\n\nJob Number: JBCA0221\\n\nClient: Just Better Care Australia Pty Ltd\\n\nProject: Private Digital Ads Rollout for JBC's Messaging Platform across multiple digital channels targeting affluent baby boomers and adult children support networks.\n\nAllocation Details:\n- Task Type: CRPA\n- Total Allocated Hours: 5.5 hours\n- Project Duration: Aug 8 – Aug 15\n- Key Dates:\n  - Aug 8: 2 hours allocated\n  - Aug 9: 3.5 hours allocated\n\"\n\nOUTPUT FORMAT:\n-> Do not put any '*' or other symbols. \nReturn ONLY valid JSON array when employees are allocated.\n\n[\n  {\n    \"employee_name\": \"\",\n    \"employee_email\": \"\",\n    \"subject\": \"\",\n    \"body\": \"\"\n  }\n]",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -96,
+        -1600
+      ],
+      "id": "073f7613-e647-430e-b20c-3e7322a1261f",
+      "name": "Notify Team1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.accountabilityonesystem.com/v1/token",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": " application/json"
+            },
+            {
+              "name": "content-type ",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "password"
+            },
+            {
+              "name": "username",
+              "value": "automates@thecoreagency.com.au"
+            },
+            {
+              "name": "password",
+              "value": "PmuqRWNnmDl9Ox520V0IaFfGCFa1z4f2tPLh5dxOfUw="
+            },
+            {
+              "name": "tenantid",
+              "value": "CI"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1312,
+        0
+      ],
+      "id": "8141d340-4a78-4b66-9e30-cf4b457162f3",
+      "name": "generate token1",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const employees =\n  $('When Executed by Another Workflow').first().json.Employees_New_Project_Hours || [];\n\nconst output = [];\n\n// Handle no employee allocation case\nif (\n  employees.length &&\n  employees[0].MESSAGE === 'NO EMPLOYEE NEW PROJECT HOURS'\n) {\n  return [{\n    json: {\n      emails: [\"No employee allocated to this project\"]\n    }\n  }];\n}\n\n// Normal processing\nfor (const item of employees) {\n\n  const names = (item.employee || '')\n    .split(/\\s+and\\s+/i)\n    .map(name => name.trim())\n    .filter(Boolean);\n\n  for (const name of names) {\n\n    output.push({\n      json: {\n        employee: name,\n        task_type_code: item.task_type\n      }\n    });\n\n  }\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1120,
+        0
+      ],
+      "id": "7b138077-8c34-4380-92ae-9c8f0a9bf54b",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.accountabilityonesystem.com/v1/Employees",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "active",
+              "value": "true"
+            },
+            {
+              "name": "SearchString",
+              "value": "={{ $json.employee }}"
+            },
+            {
+              "name": "limit",
+              "value": "1"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('generate token1').item.json.access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -704,
+        -176
+      ],
+      "id": "9b8e11cb-19bb-4eb1-843f-4d1ab7e2bf98",
+      "name": "get all active emp"
+    },
+    {
+      "parameters": {
+        "jsCode": "const names = [];\nconst emails = [];\n\nfor (const item of $input.all()) {\n\n  const employee = item.json.data?.[0];\n\n  if (!employee) continue;\n\n  names.push(employee.name);\n  emails.push(employee.email);\n}\n\nreturn [\n  {\n    json: {\n      names,\n      emails\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        -176
+      ],
+      "id": "d7d274e3-6b42-4cfd-91dd-691e012d1a9b",
+      "name": "emp name & email"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "67e57b35-b3e8-4848-a0fb-666fb37c7602",
+              "name": "emails",
+              "value": "={{ $json.emails }}",
+              "type": "array"
+            },
+            {
+              "id": "451df84e-2490-46d4-ab7f-defeae9fe684",
+              "name": "job_number",
+              "value": "={{ $('When Executed by Another Workflow').item.json.job_number }}",
+              "type": "string"
+            },
+            {
+              "id": "e5e9e4d4-3448-4f7c-af94-942b57cb4a66",
+              "name": "client_name",
+              "value": "={{ $('When Executed by Another Workflow').item.json.client_name }}",
+              "type": "string"
+            },
+            {
+              "id": "e3eee6db-c33c-4ce0-a8de-4b2f45e1db3d",
+              "name": "project_description",
+              "value": "={{ $('When Executed by Another Workflow').item.json.project_description }}",
+              "type": "string"
+            },
+            {
+              "id": "e822c209-6369-42be-948c-78f9b04beb55",
+              "name": "Employees_New_Project_Hours",
+              "value": "={{ $('When Executed by Another Workflow').item.json.Employees_New_Project_Hours }}",
+              "type": "array"
+            },
+            {
+              "id": "b80a2c3b-10a5-4ac0-85f5-2a84e81ed782",
+              "name": "client_folder_link ",
+              "value": "={{ $('When Executed by Another Workflow').item.json.client_folder_link }}",
+              "type": "string"
+            },
+            {
+              "id": "d3024eae-10e0-455e-8455-5a7494ed87ca",
+              "name": "estimate_link",
+              "value": "={{ $('When Executed by Another Workflow').item.json.estimate_link }}",
+              "type": "string"
+            },
+            {
+              "id": "e8da55dd-9a5f-41cb-8ea8-ed8c73c8f645",
+              "name": "project_time_line",
+              "value": "={{ $('When Executed by Another Workflow').item.json.project_timeline }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -288,
+        16
+      ],
+      "id": "b69ea13d-7030-4dd1-a9cc-9c72d746bd30",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c693b76e-5f5d-4726-ad51-f2f1e9307e71",
+              "leftValue": "={{ $json.no_employee_allocation }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1456,
+        -1600
+      ],
+      "id": "0a98fcf5-7f58-4959-a2ef-f706a382d047",
+      "name": "NO Workflow Allocation ?1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const employees =\n$('When Executed by Another Workflow').first().json.Employees_New_Project_Hours || [];\n\nconst output = [];\n\nfor (const item of employees) {\n\n  const names = item.employee\n    .split(/\\s+and\\s+/i)\n    .map(name => name.trim());\n\n  for (const name of names) {\n\n    output.push({\n      json: {\n        employee: name,\n        task_type_code: item.task_type\n      }\n    });\n\n  }\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1168,
+        -176
+      ],
+      "id": "e553c640-4ad2-4ccd-9153-0d7473239498",
+      "name": "Code in JavaScript2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a138bc6b-2e35-475c-aceb-17c8aee8c1a9",
+              "leftValue": "={{ $json.emails }}",
+              "rightValue": "No employee allocated to this project",
+              "operator": {
+                "type": "array",
+                "operation": "notContains",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -912,
+        0
+      ],
+      "id": "42bbf8a0-535b-4ead-b3dc-730fb729f54e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Code in JavaScript').item.json.employee_email }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.data }}\n<ul>\n<li>Client Folder: {{ $('Edit Fields1').item.json['client_folder_link '] }}</li>\n</ul>\n<p>Please review the details and let us know if you have any questions.</p>",
+        "options": {
+          "bccList": "chris@automateshub.ai, futuretechdotcodotin@gmail.com, suzy@automateshub.ai"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1984,
+        576
+      ],
+      "id": "55c551a5-1f01-481a-ad21-035a579f42cf",
+      "name": "Chris: Team Notification1",
+      "webhookId": "c074809f-85ab-40e2-8925-4c4c0eab0027",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dgbO5wXsWxd421Pk",
+          "name": "MiltonCoreAgency"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('When Executed by Another Workflow').item.json.recipient_email }}",
+                    "rightValue": "milton@thecoreagency.com.au",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3c0fa406-dc19-4149-8ad9-2d0820e5fcdd"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Milton"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3ddc1efd-42b0-482b-ac03-c4842fb57f41",
+                    "leftValue": "={{ $('When Executed by Another Workflow').item.json.recipient_email }}",
+                    "rightValue": "joseph@thecoreagency.com.au",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Joseph"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e44fd9ad-b476-4c45-b448-4a4d770e5293",
+                    "leftValue": "={{ $('When Executed by Another Workflow').item.json.recipient_email }}",
+                    "rightValue": "jen@thecoreagency.com.au",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Jen"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        848,
+        96
+      ],
+      "id": "376383f9-3782-4813-bd0f-c6ab239131eb",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Code in JavaScript').item.json.employee_email }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.data }}\n<ul>\n<li>Client Folder: {{ $('Edit Fields1').item.json['client_folder_link '] }}</li>\n</ul>\n<p>Please review the details and let us know if you have any questions.</p>",
+        "options": {
+          "bccList": "chris@automateshub.ai, futuretechdotcodotin@gmail.com, suzy@automateshub.ai"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        -96
+      ],
+      "id": "3e004f43-60ce-48d8-8e09-6501fb05f7aa",
+      "name": "Team Notification by Milton",
+      "webhookId": "c074809f-85ab-40e2-8925-4c4c0eab0027",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dgbO5wXsWxd421Pk",
+          "name": "MiltonCoreAgency"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Code in JavaScript').item.json.employee_email }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.data }}\n<ul>\n<li>Client Folder: {{ $('Edit Fields1').item.json['client_folder_link '] }}</li>\n</ul>\n<p>Please review the details and let us know if you have any questions.</p>",
+        "options": {
+          "bccList": "chris@automateshub.ai, futuretechdotcodotin@gmail.com, suzy@automateshub.ai"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        112
+      ],
+      "id": "a1e0927e-7c59-45af-a7d8-b3c4aa3498e1",
+      "name": "Team Notification by Joseph",
+      "webhookId": "c074809f-85ab-40e2-8925-4c4c0eab0027",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GAYYRpeYo4FpsnHJ",
+          "name": "JoeyCoreAgency"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Code in JavaScript').item.json.employee_email }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.data }}\n<ul>\n<li>Client Folder: {{ $('Edit Fields1').item.json['client_folder_link '] }}</li>\n</ul>\n<p>Please review the details and let us know if you have any questions.</p>",
+        "options": {
+          "bccList": "chris@automateshub.ai, futuretechdotcodotin@gmail.com, suzy@automateshub.ai"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1136,
+        320
+      ],
+      "id": "46ae81c9-e516-4029-a52f-c0d6ec5b6eed",
+      "name": "Team Notification by Jen",
+      "webhookId": "c074809f-85ab-40e2-8925-4c4c0eab0027",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "yTfBvr2KK5WeYCFb",
+          "name": "JenCoreAgency"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "generate token1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Notify Team",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "NO Workflow Allocation ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Account Manager Summary Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Account Manager Summary Email",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Account Manager Summary Email",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Team": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Account Manager Summary Email": {
+      "main": [
+        [
+          {
+            "node": "chris: Summary Email to Account Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "chris: Summary Email to Account Manager": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chris: Team Notification": {
+      "main": [
+        []
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NO Workflow Allocation ?": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Client Delivery Email": {
+      "main": [
+        [
+          {
+            "node": "get timeline sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get timeline sheet": {
+      "main": [
+        [
+          {
+            "node": "Convert Sheet into PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Sheet into PDF": {
+      "main": [
+        [
+          {
+            "node": "Upload(Save) Sheet PDF in Production Folder",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "chris: client package delivery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload(Save) Sheet PDF in Production Folder": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Brief Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brief Data": {
+      "main": [
+        [
+          {
+            "node": "Client Delivery Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "chris: client package delivery": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Call '09 Continous Learning'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate token1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get all active emp": {
+      "main": [
+        [
+          {
+            "node": "emp name & email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "emp name & email": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Notify Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "get all active emp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Team Notification by Milton",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Team Notification by Joseph",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Team Notification by Jen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Team Notification by Milton": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Team Notification by Joseph": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Team Notification by Jen": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "IvoaG9HmActW0rQc"
+  },
+  "versionId": "805f837a-2b23-43e2-8ee9-7ae3b6537e9a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bbeea15b1024389331eb7374325878e8f2a1f4a74244cd3f4dc2bea8b92be6a4"
+  },
+  "nodeGroups": [],
+  "id": "8J6zC8CyOcKOPsnC",
+  "tags": []
+}

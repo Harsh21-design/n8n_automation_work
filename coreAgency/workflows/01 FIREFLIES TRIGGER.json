@@ -1,0 +1,849 @@
+{
+  "name": "01 FIREFLIES TRIGGER",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "d8f5e07c-5bed-46d9-9835-79471225299c",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -304,
+        1248
+      ],
+      "id": "dd361b1d-d628-470e-8e63-0aa264d17e91",
+      "name": "Webhook",
+      "webhookId": "d8f5e07c-5bed-46d9-9835-79471225299c",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "content": "## FIREFLIES.AI TRIGGER FLOW",
+        "height": 544,
+        "width": 2660,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -432,
+        1040
+      ],
+      "typeVersion": 1,
+      "id": "71630062-d49a-493d-b778-4ecc0060c5ab",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.fireflies.ai/graphql",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ .FIREFLIES_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"query Transcript($transcriptId: String!) { transcript(id: $transcriptId) { title id } }\",\n  \"variables\": {\n    \"transcriptId\": \"{{ $json.body.meeting_id }}\"\n  }\n}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -96,
+        1248
+      ],
+      "id": "14a8316b-e986-4ca2-8327-b0e064ea8cd9",
+      "name": "get transcript ID"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        320,
+        1440
+      ],
+      "id": "9ab2876b-b200-4384-a47a-fafddbfc2e6b",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.fireflies.ai/graphql",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ .FIREFLIES_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"query Transcript($transcriptId: String!) { transcript(id: $transcriptId) { id transcript_url title date host_email duration speakers { id name } sentences { speaker_name text start_time end_time } meeting_attendees { email } summary { overview  topics_discussed transcript_chapters action_items keywords } } }\",\n  \"variables\": {\n    \"transcriptId\": \"{{$json.data.transcript.id}}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        320,
+        1232
+      ],
+      "id": "944ddb4b-8495-47a2-8d08-4b193aba260e",
+      "name": "get transcript details"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "vMq4vO3KliGpmeJf",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/vMq4vO3KliGpmeJf",
+          "cachedResultName": "02 Brief Extraction Flow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2032,
+        1056
+      ],
+      "id": "860451f6-3c70-45e3-8589-80d70f2cbb24",
+      "name": "Call 'Brief Extraction Flow'"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\"texts\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1664,
+        1232
+      ],
+      "id": "4a61f2e8-0c77-4034-9559-436ffeeeb058",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "449c5877-d723-42ec-bed1-f2f5dafb823f",
+              "leftValue": "={{ $json.data.transcript.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        112,
+        1248
+      ],
+      "id": "7116ea62-6b7c-49eb-9b5e-39cfb7e3f843",
+      "name": "If transcript ID ?"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=TRANSCRIPT: [\nMilton (00:00): Hi everyone. \n \nJoseph Rosslind (00:01): Hi, Milton. How are you? \n \nMilton (00:04): Very, very good. Happy Friday. \n \nJoseph Rosslind (00:06): Happy Friday. Thank you for the new brief. \n \nMilton (00:10): Yeah, of course, of course. I'm really happy to kick up this meeting and kick \nup this campaign with you guys. I'm very excited. But yeah, like we are pretty much ready \nwhen you, when you're ready, I can definitely just give you some backgrounds and stuff. Are \nyou guys ready to go or do you want to add anything before I jump in and start? \n \nJoseph Rosslind (00:30): I'm ready. And I'd like to introduce you to our client service director, \nJen. She's helping us out for the next couple of months. So she's a new face. So I thought \nyou'd say hi, say hi Jen. \n \nJen Hird (00:43): I don't even want to sit back, but hi Milton. It's so lovely to meet you. Thank \nyou for this brief. \n \nMilton (00:49): Yeah, it's nice to see you. Yes, new brief. I'm very, very, very, very excited and \nour team's really excited to kick up this campaign with you. So yeah, I'll just literally just jump \nin right now. So we've just locked on, we've just locked in our Q3 planning. So the timing is \npretty good to get this moving. So I've got a fair bit of a run through today. QB has always \npositioned itself as the comprehensive cover insurer. Lots of numbers, lots of policy detail in \nour marketing and we are launching something different today or not today or this time a \nnew standalone sub brand called Bellevue Health aimed at reframing Health insurance as \nsomething that supports people's day to day lives, not just a safety net for when things go \nwrong. \n \nMilton (01:34): So this has come from research last year showing younger members feel \ndisconnected from the traditional QBE messaging. They want their cover to feel like a part of \ntheir everyday routine. Gym sessions, mental Health check ins and that kind of things. And \nto be clear, Bellevue Health is genuinely a new sub brand with its own name and identity. But \nit will be clear it's back by QBE. We are not touching the accor QBE logo or brand identity as \npart of this. Okay, so moving into the objectives and target audiences again, the main \nobjective here is the awareness and considering among 25 to 40 years old who don't \ncurrently have private Health cover or are considering switching providers. The secondary \nobjective is making our existing younger members feel more engaged. \n \nMilton (02:23): We've got real churn risk in that segment if that makes sense. And for \ntargeting it's mostly metro singles and young couples without kids yet we'll do a separate \npush for families next year. So that's out of scope. For now. And in terms of the deliverables \nchannels, there are four deliverables here. So the first one is the Hero video, the 30 seconds \n16 by 9 ratio of course for use on our websites and YouTube. And we'll also need two cut \n \ndowns of that same video. A 15 second version and a 6 second bumper, both 9 by 6 in \nvertical for the stories and reels. The next one is the social campaign for meta and \nInstagram. \n \nMilton (03:04): A mix of static and carousel posts which is like a 1080 by 1080 square for the \nfeed and 1080 by 1920 for the story. So the vertical one, the next one is the EDM for our \nexisting database. Standard single column responsive template header banner at 600 pixel \nwide. We have been using the EDMS a lot with the KB platform, so I'm sure this is not going \nto be a new thing for you guys. The last one is the digital display banner for the retargeting. \nAnd of course we have those six different standard, standard DV360 file sizes. So that's the \ndigital display part that needs to be dispatched as the HTML5 files. And what to add. One \nmore thing to make it a bit more complicated for you guys. \n \nMilton (03:58): We want three concept directions to choose from before committing to the full \nproduction. Of course, I mean if you can come up with the brilliant ideas, that'd be great. And \nwe went straight to the one concept last time and then got burned. So this time we need a \nproper options. Any questions so far? \n \nJoseph Rosslind (04:19): Thank you. Milton from QBE for the new brief. I think it is very clear \nand this is one of the most in depth and succinct briefs I've ever received from QBE. And \nthat is being truthful. \n \nMilton (04:36): Very good. We have a pretty big budget here as well. The budget for this one \nis 2,300. Oh, sorry, wrong. So the total budget is $980,000 and that needs to cover the \nmedia spin as well as well as the production. So yeah, and also I'm estimating the \nproduction is realistically around, you know, 600,000. But I'll leave that one up to you guys \nfor you because I know that you guys are going to come up with the cost estimate and \neverything and, and on timing we need to deliver this to be live by the 21st of September. \n \nMilton (05:12): I know this is pretty tight, but we have the Q3 ready to go that time, so we \ndefinitely need that to be done by 21st September this year and we would like to get the \ninitial concepts done by the 31st of July. So we have a bit of room to finalize this. And on the \namendatories every SM must use the new Bellevue Health lockup logo which our design \nteam will send through, plus a small backed by QB endorsement line and the standard \ndisclaimer footer which we will be providing in a later stage. And one important thing to flag, I \nonly found out this morning. The legal hasn't signed off yet on how we can talk about the \nspecific Health claims. Thinking like reduces stress or improves well being might need to be \nsoftened or removed. \n \nMilton (05:59): I don't have a firm answer on when that will be clear, but for now please treat \nthat as an open risk rather than building the whole concept around language that might not \nsurvive legal review. Yeah, I think that was pretty much it. I know I went through a lot really \nquickly and of course I'll send you the briefs in written briefs. But then yeah, that's pretty \nmuch it from my end. Do you guys have any questions? \n \nJoseph Rosslind (06:28): No, I thank you again for the succinct new brief. And Jen, did you \nhave any questions? \n \nMilton (06:37): Was there something I was supposed to say? \n \nJen Hird (06:42): No, I don't have any questions. \n \nMilton (06:45): Awesome. Great. Thanks guys. And I'll send you this through to you quickly. \nAnd I'm assuming you'll be sending me next steps, any questions by the end of next week \nthen? \n \nJoseph Rosslind (06:55): So we'll work on a contact report just to report back on that and \nonce you respond with that, we can work through timings and what's the requirements. But \nthank you again for the new brief. \n \nMilton (07:06): Awesome. No worries. Thanks guys. \n]\nConvert this transcript into PLAIN TEXT in below format.\n\n{\n\"texts\": \"\"\n}\n",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        2048,
+        688
+      ],
+      "id": "dd83f3f5-a13f-4b4c-a32f-afae6cca3b08",
+      "name": "normalize transcript",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "d8f5e07c-5bed-46d9-9835-79471225299c",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -96,
+        880
+      ],
+      "id": "c374f1fb-99b9-4f9a-86a2-4326bbfae00d",
+      "name": "Webhook1",
+      "webhookId": "d8f5e07c-5bed-46d9-9835-79471225299c",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// =====================================\n// n8n CODE NODE\n// Detect ONLY \"New Brief\"\n// =====================================\n\n// SAFE ACCESS\nconst title = $input.first().json.title\n//  $input.first()?.json?.data?.transcript?.title || '';\n\n// NORMALIZE\nconst normalizedTitle = String(title)\n  .trim()\n  .toLowerCase();\n\n// Matches ONLY:\n// new brief\n// newbrief\n// new-brief\n// new_brief\n// new    brief\nconst containsNewBrief = /\\bnew[\\s_-]*brief\\b/i.test(normalizedTitle);\n\nreturn [\n  {\n    json: {\n      original_title: title,\n      normalized_title: normalizedTitle,\n      contains_new_brief: containsNewBrief,\n      matched_keyword: containsNewBrief ? 'new brief' : null\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        736,
+        1232
+      ],
+      "id": "cc6103f8-9c3c-4a6c-8694-4ce2ccb9f875",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "01ae1d6f-a249-4788-8d50-ba3b54ad0e4e",
+              "leftValue": "={{ $json.contains_brief}}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        928,
+        1232
+      ],
+      "id": "b34d8ce9-6902-4dd8-94c0-e9d469d131e5",
+      "name": "Filter Brief"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        1376
+      ],
+      "id": "f4a7d602-83c1-42d4-baec-c2793ec254b1",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ed622515-f0ae-4cb5-920c-b55e845d6028",
+              "name": "title",
+              "value": "={{ $('Code in JavaScript').item.json.original_title }} ",
+              "type": "string"
+            },
+            {
+              "id": "cd5f8c9e-1a5f-48d0-adda-d483abfd71ef",
+              "name": "host_email",
+              "value": "={{ $('get transcript details').item.json.data.transcript.host_email }}",
+              "type": "string"
+            },
+            {
+              "id": "2db0fc0f-d7fb-43da-9929-e8a8a74ae628",
+              "name": "transcript",
+              "value": "={{ $json.output.texts }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1840,
+        1056
+      ],
+      "id": "a0fb3683-8137-43b1-a9a2-d53c2518a85c",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "content": "## AI Here?\n**I think we need to get this AI module to turn the transcript into a brief by extracting key information. When a brief is discussed in a meeting, there would not be  a clear normalised transcript for matching purposes",
+        "height": 208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1408,
+        800
+      ],
+      "typeVersion": 1,
+      "id": "8eb654a1-5447-443c-9538-85246336541e",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "Claude Haiku 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        1360,
+        1248
+      ],
+      "id": "5e167bc1-757d-4991-85c4-ec7247d88e30",
+      "name": "claude-haiku-4.5",
+      "credentials": {
+        "anthropicApi": {
+          "id": "Jg1V1gnBT6Yoq4CM",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1488,
+        1280
+      ],
+      "id": "aa9516e3-9865-4fe8-a6f5-fd7b69519bd0",
+      "name": "gpt-5-mini",
+      "credentials": {
+        "openAiApi": {
+          "id": "v1DQHKLXrdQIocpO",
+          "name": "OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49da06ae-244f-47f7-98bb-8f7378fcc586",
+              "leftValue": "={{ $('get transcript details').item.json.data.transcript.sentences }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1184,
+        1072
+      ],
+      "id": "ad7361bb-528d-4825-9fff-d3adcb524327",
+      "name": "Transcript Sentence Exists"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "d8f5e07c-5bed-46d9-9835-79471225299c",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -112,
+        1456
+      ],
+      "id": "de369f77-2f7b-4e6b-b6fe-6c1ae0cba90a",
+      "name": "Webhook2",
+      "webhookId": "d8f5e07c-5bed-46d9-9835-79471225299c",
+      "retryOnFail": true,
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        1168,
+        720
+      ],
+      "id": "2575ed30-5322-4e42-85ed-3a656a05ecc4",
+      "name": "When clicking ‘Execute workflow’",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=TRANSCRIPT: {{ JSON.stringify($('get transcript details').item.json.data.transcript.sentences.map(item => item.text)) }}\nConvert this transcript into PLAIN TEXT in below format.\n\n{\n\"texts\": \"\"\n}\n",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1376,
+        592
+      ],
+      "id": "060503a8-07a6-4ca8-bdef-8d548d41525f",
+      "name": "normalize transcript1",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ed622515-f0ae-4cb5-920c-b55e845d6028",
+              "name": "title",
+              "value": "={{ $('Code in JavaScript').item.json.original_title }} ",
+              "type": "string"
+            },
+            {
+              "id": "2db0fc0f-d7fb-43da-9929-e8a8a74ae628",
+              "name": "transcript",
+              "value": "={{ $node['normalize transcript'].json.output.texts }}",
+              "type": "string"
+            },
+            {
+              "id": "cd5f8c9e-1a5f-48d0-adda-d483abfd71ef",
+              "name": "attendees_email",
+              "value": "={{ $('get transcript details').item.json.data.transcript.meeting_attendees }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1728,
+        592
+      ],
+      "id": "210281ca-ea6e-43e4-be27-115c7b22bbfb",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "content": "## True Prod Nodes\n",
+        "height": 192,
+        "width": 512,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1360,
+        512
+      ],
+      "typeVersion": 1,
+      "id": "ab03121d-b38d-42cb-a555-31f56ec0c545",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=TRANSCRIPT: [{{ JSON.stringify($('get transcript details').item.json.data.transcript.sentences.map(item => item.text)) }}]\n\nYou are given a meeting transcript.\n\nYour task is to convert the transcript into plain readable text.\n\nRules:\n- Remove all timestamps.\n- Remove speaker names.\n- Preserve every spoken word exactly as written.\n- Do NOT summarize.\n- Do NOT rewrite or improve grammar.\n- Do NOT omit any content.\n- Preserve the original speaking order.\n- Separate paragraphs with a blank line where appropriate for readability.\n- Do NOT include markdown.\n- Do NOT include code fences.\n- Output ONLY valid JSON.\n\nOutput Schema:\n\n{\n  \"texts\": \"...\"\n}\n",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1424,
+        1056
+      ],
+      "id": "455a539b-12eb-4921-9c6a-642ab8d59ebd",
+      "name": "normalize transcript Agent",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ed622515-f0ae-4cb5-920c-b55e845d6028",
+              "name": "title",
+              "value": "={{ $('Code in JavaScript').item.json.original_title }} ",
+              "type": "string"
+            },
+            {
+              "id": "2db0fc0f-d7fb-43da-9929-e8a8a74ae628",
+              "name": "transcript",
+              "value": "={{ $json.output.texts }}",
+              "type": "string"
+            },
+            {
+              "id": "cd5f8c9e-1a5f-48d0-adda-d483abfd71ef",
+              "name": "attendees_email",
+              "value": "={{ $('get transcript details').item.json.data.transcript.meeting_attendees }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1840,
+        880
+      ],
+      "id": "17436190-e04e-48bf-a015-a9f1572f5df9",
+      "name": "Edit Fields2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// =====================================\n// n8n CODE NODE\n// Check if transcript title contains \"brief\"\n// Production-ready version\n// =====================================\n\n// SAFE ACCESS\nconst title =\n  $input.first()?.json?.data?.transcript?.title || '';\n\n// NORMALIZE\nconst normalizedTitle = String(title)\n  .trim()\n  .toLowerCase();\n\n// CHECK\nconst containsBrief =\n  normalizedTitle.includes('brief');\n\n// OPTIONAL:\n// detect variations like briefing / creative brief\nconst matchedKeyword =\n  containsBrief\n    ? 'brief'\n    : null;\n\n// OUTPUT\nreturn [\n  {\n    json: {\n\n      original_title: title,\n\n      normalized_title: normalizedTitle,\n\n      contains_brief: containsBrief,\n\n      matched_keyword: matchedKeyword\n\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        992
+      ],
+      "id": "7373e172-b34b-4d07-b343-1db9726b24dd",
+      "name": "only brief",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0b82d7bf-c550-478b-b9d8-99d10f5f7401",
+              "name": "title",
+              "value": "={{ $json.data.transcript.title }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        544,
+        1232
+      ],
+      "id": "d0c5e1d0-1ed2-414c-b46b-0eaf1e75a6d3",
+      "name": "title"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "automates.app.n8n.cloud",
+            "user-agent": "Fireflies-Webhook/2.0",
+            "content-length": "99",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "104.197.86.72",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "US",
+            "cf-ray": "a1c76ed8ad6efa1f-ORD",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "x-forwarded-for": "104.197.86.72, 172.70.130.156",
+            "x-forwarded-host": "automates.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-119-55454b458-stb5f",
+            "x-is-trusted": "yes",
+            "x-real-ip": "104.197.86.72",
+            "x-webhook-delivery-id": "6a59d5a2d156b30115fe334a"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "event": "meeting.transcribed",
+            "timestamp": 1784272290414,
+            "meeting_id": "01KXQ6YVKEX1H52BQK1007DQ4Z"
+          },
+          "webhookUrl": "https://automates.app.n8n.cloud/webhook/d8f5e07c-5bed-46d9-9835-79471225299c",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "get transcript ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get transcript ID": {
+      "main": [
+        [
+          {
+            "node": "If transcript ID ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get transcript details": {
+      "main": [
+        [
+          {
+            "node": "title",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "normalize transcript Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If transcript ID ?": {
+      "main": [
+        [
+          {
+            "node": "get transcript details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "normalize transcript": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Filter Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Brief": {
+      "main": [
+        [
+          {
+            "node": "Transcript Sentence Exists",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Call 'Brief Extraction Flow'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "claude-haiku-4.5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "normalize transcript Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gpt-5-mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "normalize transcript Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Transcript Sentence Exists": {
+      "main": [
+        [
+          {
+            "node": "normalize transcript Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        []
+      ]
+    },
+    "normalize transcript1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "normalize transcript Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "title": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "IvoaG9HmActW0rQc"
+  },
+  "versionId": "e8df192f-976e-47db-9ef9-14c28874bf4e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bbeea15b1024389331eb7374325878e8f2a1f4a74244cd3f4dc2bea8b92be6a4"
+  },
+  "nodeGroups": [],
+  "id": "sC6dDr9zLW21xFxu",
+  "tags": []
+}
